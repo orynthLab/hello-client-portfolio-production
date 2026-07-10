@@ -821,8 +821,8 @@ export default function TheCore() {
                   />
                 )}
                 <p
-                  className={`mt-3 whitespace-nowrap font-mono uppercase tracking-[0.2em] text-ink-dim ${
-                    l.flagship ? "text-[11px]" : "text-[10px]"
+                  className={`mt-3 max-w-[22vw] whitespace-normal text-center leading-tight font-mono uppercase tracking-[0.2em] text-ink-dim sm:max-w-none sm:whitespace-nowrap sm:leading-normal ${
+                    l.flagship ? "text-[9px] sm:text-[11px]" : "text-[8px] sm:text-[10px]"
                   }`}
                   style={l.flagship ? { color: l.project.accent } : undefined}
                 >

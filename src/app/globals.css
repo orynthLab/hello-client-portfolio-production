@@ -685,3 +685,28 @@ html[data-overlay-open] .animate-fog {
     animation: none !important;
   }
 }
+
+/* Same reduction as above, applied by viewport size rather than motion
+   preference — dozens of these running concurrently alongside the world's
+   GSAP-driven glow/parallax is what causes visible jank on phone GPUs.
+   Desktop/tablet widths are untouched. */
+@media (max-width: 767px) {
+  .iw-particle,
+  .iw-data-drift,
+  .iw-tick-pulse,
+  .iw-ticker-drift,
+  .iw-ticker-particle,
+  .iw-numeric-pulse,
+  .iw-data-pulse-ring,
+  .iw-page-drift,
+  .iw-cell-fade,
+  .iw-ocr-particle,
+  .iw-scan-line,
+  .animate-pulse-soft,
+  .animate-drift,
+  .animate-radial-shift,
+  .animate-beam,
+  .animate-fog {
+    animation: none !important;
+  }
+}

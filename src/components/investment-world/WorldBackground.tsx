@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { prefersReducedMotion } from "./motion";
+import { prefersReducedMotion, isMobileViewport } from "./motion";
 import type { WorldTheme } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -542,6 +542,10 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
   const particleRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const routePathRefs = useRef<(SVGPathElement | null)[]>([]);
   const routeDotRefs = useRef<(SVGCircleElement | null)[]>([]);
+  // Checked once on mount (same convention as prefersReducedMotion elsewhere
+  // in this world) — starts false so SSR/first paint matches desktop, then
+  // settles before the entrance timeline below actually starts animating.
+  const [isMobile, setIsMobile] = useState(false);
 
   const { primaryRGB, glowPrimaryRGB, secondaryRGB, numericPool, motif } = theme;
   const isDocuments = motif === "documents";
@@ -552,6 +556,10 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
   // only the documents-only (page fold, accounting tables) and
   // verification-only (ID cards, confidence badges, watermark) pieces diverge.
   const isPaperLike = isDocuments || isVerification;
+
+  useEffect(() => {
+    setIsMobile(isMobileViewport());
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(MotionPathPlugin);
@@ -569,8 +577,12 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
       // The breathing glow and traveling shipment lights are purely ambient —
       // skip them entirely for a visitor who has asked for reduced motion,
       // rather than merely pausing them (they'd otherwise run for the whole
-      // time this background is mounted, which is most of the site).
-      if (!prefersReducedMotion()) {
+      // time this background is mounted, which is most of the site). Same
+      // treatment on mobile: these are two infinite, always-on tweens (plus
+      // a MotionPath loop on the routes motif) stacked on top of everything
+      // else this background renders — the single biggest ongoing cost to a
+      // phone GPU, for an effect that reads as barely-there even on a laptop.
+      if (!prefersReducedMotion() && !isMobileViewport()) {
         gsap.to(glowRef.current, {
           opacity: 0.78,
           scale: 1.05,
@@ -699,7 +711,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
                 fill="none"
                 stroke={paper ? `rgba(${secondaryRGB},${opacity})` : `rgba(${primaryRGB},${opacity})`}
                 strokeWidth={strokeWidth}
-                filter="url(#wb-line-blur)"
+                filter={isMobile ? undefined : "url(#wb-line-blur)"}
                 strokeDasharray="2 5"
                 className="iw-data-drift"
                 style={{ animationDuration: `${dashSpeed}s` }}
@@ -743,7 +755,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
 
                 {/* blurred accounting tables — out-of-focus row/column structure */}
                 {BLURRED_TABLES.map((t) => (
-                  <g key={`table-${t.i}`} filter="url(#wb-table-blur)" className="iw-page-drift" style={{ animationDuration: `${t.duration}s`, animationDelay: `${t.delay}s` }}>
+                  <g key={`table-${t.i}`} filter={isMobile ? undefined : "url(#wb-table-blur)"} className="iw-page-drift" style={{ animationDuration: `${t.duration}s`, animationDelay: `${t.delay}s` }}>
                     <rect
                       x={t.x}
                       y={t.y}
@@ -1075,7 +1087,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
                 fill="none"
                 stroke={gold ? `rgba(${secondaryRGB},${opacity})` : `rgba(${primaryRGB},${opacity})`}
                 strokeWidth={strokeWidth}
-                filter="url(#wb-line-blur)"
+                filter={isMobile ? undefined : "url(#wb-line-blur)"}
                 strokeDasharray="3 9"
                 className="iw-data-drift"
                 style={{ animationDuration: `${dashSpeed}s` }}
@@ -1282,7 +1294,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
           height: "min(95vw, 900px)",
           borderRadius: "50%",
           background: `radial-gradient(ellipse at 50% 45%, rgba(${glowPrimaryRGB},0.5) 0%, rgba(${glowPrimaryRGB},0.28) 38%, transparent 68%)`,
-          filter: "blur(90px)",
+          filter: isMobile ? "blur(40px)" : "blur(90px)",
         }}
       />
       <div
@@ -1296,7 +1308,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
           height: "min(60vw, 560px)",
           borderRadius: "50%",
           background: `radial-gradient(ellipse at 50% 50%, rgba(${secondaryRGB},0.05) 0%, transparent 60%)`,
-          filter: "blur(100px)",
+          filter: isMobile ? "blur(45px)" : "blur(100px)",
         }}
       />
     </div>

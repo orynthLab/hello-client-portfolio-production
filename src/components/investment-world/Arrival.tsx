@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { prefersReducedMotion } from "./motion";
+import { prefersReducedMotion, isMobileViewport } from "./motion";
 
 // ---------------------------------------------------------------------------
 // SCREEN 1 — Project Hero.
@@ -58,10 +58,14 @@ export default function Arrival({
       // Title arrives once the atmosphere has had time to settle — a beat of
       // pure stillness first, so the title reads as arriving into a place,
       // not popping onto a loading screen.
+      // filter:blur() is the most expensive part of this reveal to interpolate
+      // and lands at the exact moment a project opens — skipped on mobile,
+      // where opacity/y alone still read as the same arrival.
+      const skipBlur = isMobileViewport();
       tl.fromTo(
         titleRef.current,
-        { opacity: 0, y: 10, filter: "blur(5px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.6, ease: "power2.out" },
+        { opacity: 0, y: 10, ...(skipBlur ? {} : { filter: "blur(5px)" }) },
+        { opacity: 1, y: 0, ...(skipBlur ? {} : { filter: "blur(0px)" }), duration: 1.6, ease: "power2.out" },
         1.4
       );
 

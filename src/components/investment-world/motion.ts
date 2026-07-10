@@ -23,6 +23,15 @@ export function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/** True on phone-sized viewports. Same "checked once at call time" convention
+ *  as prefersReducedMotion() above — used to drop the specific effects that
+ *  are cheap on a laptop GPU but visibly janky on a phone (filter/blur
+ *  interpolated every frame, continuous ambient tweens), without touching
+ *  anything at desktop/tablet widths. */
+export function isMobileViewport() {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+}
+
 /** Fade + rise into place once its trigger crosses into view. Reverses on scroll back up so revisiting a section never finds it half-collapsed. */
 export function revealUp(
   el: gsap.TweenTarget,
@@ -30,13 +39,17 @@ export function revealUp(
   opts: { y?: number; delay?: number; duration?: number; start?: string } = {}
 ) {
   ensureScrollTrigger();
+  // filter:blur() forces a repaint every scroll-tied frame — fine on desktop,
+  // visibly janky on mobile GPUs when several of these fire during a scroll.
+  // Opacity + y alone carry the same reveal cue at a fraction of the cost.
+  const skipBlur = isMobileViewport();
   return gsap.fromTo(
     el,
-    { opacity: 0, y: opts.y ?? 26, filter: "blur(4px)" },
+    { opacity: 0, y: opts.y ?? 26, ...(skipBlur ? {} : { filter: "blur(4px)" }) },
     {
       opacity: 1,
       y: 0,
-      filter: "blur(0px)",
+      ...(skipBlur ? {} : { filter: "blur(0px)" }),
       duration: opts.duration ?? 1.1,
       delay: opts.delay ?? 0,
       ease: "power2.out",
