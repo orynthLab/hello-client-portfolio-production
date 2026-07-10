@@ -5,6 +5,10 @@
   "description": "Hello Client — an AI product studio portfolio: five interactive project worlds built on one shared, config-driven framework (Arrival, Story, Resources) plus a persistent, animated hub (\"The Core\").",
   "author": "Hello Client",
   "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orynthLab/hello-client-portfolio-production.git"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
