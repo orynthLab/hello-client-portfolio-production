@@ -94,7 +94,7 @@ export default function ReadmeModal({ content }: { content: ReadmeContent }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-glass-border bg-[#0a0c12] shadow-2xl"
+              className="relative z-10 flex h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-glass-border bg-[#0a0c12] shadow-2xl"
             >
               {/* file bar — the one deliberate GitHub cue: a filename tab, nothing else borrowed */}
               <div className="flex shrink-0 items-center justify-between border-b border-glass-border bg-white/[0.03] px-5 py-3">

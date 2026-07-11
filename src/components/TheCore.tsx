@@ -645,8 +645,8 @@ export default function TheCore() {
       />
 
       <div ref={headerRef}>
-        <AIBrandMark className="fixed left-6 top-6 z-40" />
-        <ContactModal className="fixed right-6 top-6 z-40" />
+        <AIBrandMark className="safe-top safe-left fixed z-40" />
+        <ContactModal className="safe-top safe-right fixed z-40" />
       </div>
 
       <div className="relative z-10 flex min-h-dvh w-full items-center justify-center px-6 py-12">
@@ -777,7 +777,7 @@ export default function TheCore() {
               // this, a keyboard user tabbing through the page lands on links
               // they can't see yet, with no visible focus target on screen.
               tabIndex={unfoldDone ? 0 : -1}
-              className="group absolute -translate-x-1/2 -translate-y-1/2"
+              className="group absolute -translate-x-1/2 -translate-y-1/2 max-sm:p-3"
               style={{ left: `${l.x}%`, top: `${l.y}%` }}
               onMouseEnter={() => setHovered(l.project.slug)}
               onMouseLeave={() => setHovered(null)}
@@ -857,7 +857,7 @@ export default function TheCore() {
             href={`/projects/${metaSystem.slug}`}
             data-cursor="open"
             tabIndex={unfoldDone ? 0 : -1}
-            className="group absolute -translate-x-1/2 -translate-y-1/2"
+            className="group absolute -translate-x-1/2 -translate-y-1/2 max-sm:p-3"
             style={{ left: `${META_LAYOUT.x}%`, top: `${META_LAYOUT.y}%`, pointerEvents: unfoldDone && !activeSlug ? "auto" : "none" }}
             onMouseEnter={() => setHovered("meta")}
             onMouseLeave={() => setHovered(null)}

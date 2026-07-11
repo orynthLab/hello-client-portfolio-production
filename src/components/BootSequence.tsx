@@ -42,6 +42,20 @@ const BEATS: Beat[] = [
   { lines: ["We'll let the work speak."], anim: "fadeBlur", hold: 1.4 },
 ];
 
+function wordCount(s: string) {
+  return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
+// A phone screen is a slower reading context (thumb-scroll distance, smaller
+// type, more likely a mid-commute glance) — multi-clause beats get ~25% more
+// hold there so they're not rushed. Short punchlines ("Yes.") keep their
+// snappy timing everywhere; desktop timing is untouched at every length.
+function beatHold(beat: Beat) {
+  const words = beat.lines.reduce((n, line) => n + wordCount(line), 0);
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+  return isMobile && words > 4 ? beat.hold * 1.25 : beat.hold;
+}
+
 const SKIP_VISIBLE_AT = 1.5;
 const BASE_DIALOGUE_CLASS = "mx-auto max-w-2xl px-6 text-center leading-relaxed will-change-transform";
 
@@ -438,10 +452,10 @@ export default function BootSequence({
             );
           }
           prevHadContent = true;
-          t += beat.hold;
+          t += beatHold(beat);
         } else {
           prevHadContent = false;
-          t += beat.hold;
+          t += beatHold(beat);
         }
       });
 
@@ -548,7 +562,7 @@ export default function BootSequence({
       <div className="relative z-10 flex flex-col items-center px-6 text-center">
         <h1
           ref={wordmarkRef}
-          className="text-glossy min-h-[1.2em] text-[9.5vw] leading-none will-change-transform sm:text-[6.2vw]"
+          className="text-glossy min-h-[1.2em] whitespace-nowrap text-[clamp(2.3rem,9.5vw,3.6rem)] leading-none will-change-transform sm:text-[6.2vw]"
         >
           <span ref={typedRef} />
           <span
@@ -604,7 +618,8 @@ export default function BootSequence({
         data-cursor="explore"
         aria-label="Skip introduction"
         onClick={finish}
-        className="absolute bottom-8 right-8 z-20 font-mono text-[10px] uppercase tracking-[0.3em] text-ink-faint transition-opacity duration-300 hover:!opacity-100"
+        className="absolute z-20 font-mono text-[10px] uppercase tracking-[0.3em] text-ink-faint transition-opacity duration-300 hover:!opacity-100"
+        style={{ bottom: "calc(2rem + env(safe-area-inset-bottom))", right: "calc(2rem + env(safe-area-inset-right))" }}
       >
         Skip →
       </button>

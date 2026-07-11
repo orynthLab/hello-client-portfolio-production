@@ -41,7 +41,7 @@ export default function ProjectWorkflow({
         style={{ backgroundColor: project.accent }}
       />
 
-      <div className="fixed left-6 top-6 z-40 flex items-center gap-3">
+      <div className="safe-top safe-left fixed z-40 flex items-center gap-3">
         <AIBrandMark />
         <Link
           href="/"
@@ -53,7 +53,7 @@ export default function ProjectWorkflow({
         </Link>
       </div>
 
-      <ContactModal className="fixed right-6 top-6 z-40" />
+      <ContactModal className="safe-top safe-right fixed z-40" />
 
       {/* connector spine */}
       <div className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-glass-border sm:block hidden">
@@ -93,7 +93,7 @@ export default function ProjectWorkflow({
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-4 sm:gap-10">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-10 lg:grid-cols-3">
           {project.metrics.map((m) => (
             <div key={m.label} className="text-center">
               <p className="font-display text-2xl font-semibold sm:text-3xl" style={{ color: project.accent }}>

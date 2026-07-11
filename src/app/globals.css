@@ -48,12 +48,41 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
   cursor: none;
+  /* Prevents the iOS/Android rubber-band bounce from revealing whatever is
+     behind the canvas at the top/bottom of a scroll gesture. Horizontal is
+     already covered by overflow-x: hidden above. */
+  overscroll-behavior-y: none;
 }
 
 @media (pointer: coarse) {
   body {
     cursor: auto;
   }
+}
+
+/* Mobile Safari/Chrome give every tap on a link or button a gray highlight
+   flash by default — jarring against this site's own hover/press states,
+   which already communicate the same thing more deliberately. */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Utility for anything pinned to a true viewport edge (nav corners, fixed
+   CTAs) so it clears the iPhone notch/Dynamic Island and home-indicator
+   area instead of sitting under it. env() resolves to 0 on devices without
+   a safe area, so this is a no-op everywhere else, including desktop. */
+.safe-top {
+  top: max(1.5rem, env(safe-area-inset-top));
+}
+.safe-bottom {
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+.safe-left {
+  left: max(1.5rem, env(safe-area-inset-left));
+}
+.safe-right {
+  right: max(1.5rem, env(safe-area-inset-right));
 }
 
 ::selection {
