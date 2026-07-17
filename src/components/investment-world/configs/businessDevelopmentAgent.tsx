@@ -94,6 +94,7 @@ export const businessDevelopmentAgentContent: WorldContent = {
     "Follow-up Engine — checking for a reply before trying again",
   ],
   statusBadgeLabel: "DRY_RUN — safe by default",
+  videoSrc: "/videos/business-development-agent.mp4",
   beats: [
     {
       kind: "text",
