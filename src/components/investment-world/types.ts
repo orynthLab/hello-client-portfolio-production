@@ -50,8 +50,10 @@ export type WorldTheme = {
   numericPool: string[];
   /** curves = market bezier lines; documents = ledger/accounting paper; verification = ID
    *  cards, bounding boxes, confidence badges, security watermark; routes = freight
-   *  nodes, GPS pulses, traveling shipment dots along gentle route arcs */
-  motif: "curves" | "documents" | "verification" | "routes";
+   *  nodes, GPS pulses, traveling shipment dots along gentle route arcs; network =
+   *  discovered-company nodes, a knowledge-graph mesh between them, CRM card
+   *  outlines, and traveling outreach pulses along conversation threads */
+  motif: "curves" | "documents" | "verification" | "routes" | "network";
 };
 
 /** a single direct resource link — Resume, GitHub, LinkedIn, Email, Schedule a

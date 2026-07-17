@@ -25,6 +25,9 @@ import type { WorldTheme } from "./types";
 // not a paper-like variant and not a recolor of curves — orthogonal mesh
 // lines, rectangular hubs, diamond cargo nodes, container-grid clusters,
 // and distribution rings, standing apart from every other motif's shapes.
+// "network" (see the NETWORK section below) is the fifth vocabulary — a
+// knowledge graph of discovered-company nodes, CRM card outlines, drifting
+// email glyphs, and conversation threads carrying a single traveling pulse.
 // ---------------------------------------------------------------------------
 
 function seededRandom(seed: number) {
@@ -535,6 +538,92 @@ const NUMERIC_PULSES_SEED = (() => {
   }));
 })();
 
+// =============================================================================
+// NETWORK motif (Autonomous Business Development Agent). Not a dashboard —
+// a quiet knowledge graph of discovered companies, a mesh of decision/
+// outreach connections between them, small CRM card outlines, drifting
+// email glyphs, and a handful of conversation threads carrying a single
+// traveling pulse — the same "freight network" mechanic the routes motif
+// uses, recast as companies/emails/CRM records instead of warehouses/
+// cargo/shipments.
+// =============================================================================
+
+const COMPANY_NODES = (() => {
+  const rand = seededRandom(614);
+  return Array.from({ length: 9 }, () => ({
+    x: 10 + rand() * 80,
+    y: 10 + rand() * 80,
+    r: 0.9 + rand() * 0.6,
+    gold: rand() > 0.65,
+    duration: 5 + rand() * 5,
+    delay: rand() * 8,
+  }));
+})();
+
+const KNOWLEDGE_GRAPH_LINKS: { a: number; b: number }[] = (() => {
+  const rand = seededRandom(233);
+  const n = COMPANY_NODES.length;
+  const links: { a: number; b: number }[] = [];
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1 + Math.floor(rand() * 2)) % n;
+    if (i !== j) links.push({ a: i, b: j });
+  }
+  return links;
+})();
+
+const OUTREACH_THREADS = (() => {
+  const rand = seededRandom(777);
+  return KNOWLEDGE_GRAPH_LINKS.slice(0, 4).map((link, i) => {
+    const A = COMPANY_NODES[link.a];
+    const B = COMPANY_NODES[link.b];
+    return {
+      d: `M${A.x},${A.y} Q${(A.x + B.x) / 2},${(A.y + B.y) / 2 - 6} ${B.x},${B.y}`,
+      dashSpeed: 8 + rand() * 6,
+      travelDuration: 6 + rand() * 5,
+      travelDelay: rand() * 6,
+      gold: i % 3 === 0,
+      i,
+    };
+  });
+})();
+
+const CRM_CARD_OUTLINES = (() => {
+  const rand = seededRandom(348);
+  return Array.from({ length: 6 }, (_, i) => ({
+    x: 8 + rand() * 76,
+    y: 8 + rand() * 76,
+    w: 6 + rand() * 3,
+    h: 4 + rand() * 2,
+    gold: rand() > 0.6,
+    duration: 16 + rand() * 10,
+    delay: rand() * 8,
+    i,
+  }));
+})();
+
+const DECISION_PULSE_RINGS = (() => {
+  const rand = seededRandom(902);
+  return COMPANY_NODES.filter((_, i) => i % 2 === 0).map((n) => ({
+    x: n.x,
+    y: n.y,
+    gold: n.gold,
+    duration: 6 + rand() * 5,
+    delay: rand() * 8,
+  }));
+})();
+
+const EMAIL_GLYPHS = (() => {
+  const rand = seededRandom(465);
+  return Array.from({ length: 5 }, () => ({
+    x: 12 + rand() * 76,
+    y: 12 + rand() * 76,
+    size: 2.2 + rand() * 0.8,
+    gold: rand() > 0.6,
+    duration: 18 + rand() * 10,
+    delay: rand() * 8,
+  }));
+})();
+
 export default function WorldBackground({ theme }: { theme: WorldTheme }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -551,6 +640,8 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
   const isDocuments = motif === "documents";
   const isVerification = motif === "verification";
   const isRoutes = motif === "routes";
+  const isNetwork = motif === "network";
+  const routeSpecs = isRoutes ? SHIPMENT_ROUTES : isNetwork ? OUTREACH_THREADS : [];
   // Elements shared by both "paper" motifs (ledger/blueprint lines, bounding-box
   // markers, cell highlights, overlay boxes, scan particles, scanner sweep) —
   // only the documents-only (page fold, accounting tables) and
@@ -600,10 +691,10 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
           ease: "sine.inOut",
         });
 
-        if (isRoutes) {
+        if (isRoutes || isNetwork) {
           routePathRefs.current.forEach((path, i) => {
             const dot = routeDotRefs.current[i];
-            const spec = SHIPMENT_ROUTES[i];
+            const spec = routeSpecs[i];
             if (!path || !dot || !spec) return;
             gsap.set(dot, { opacity: 0.85 });
             gsap.to(dot, {
@@ -1063,6 +1154,109 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
                   fill="none"
                   stroke={r.gold ? `rgba(${secondaryRGB},0.06)` : `rgba(${primaryRGB},0.055)`}
                   strokeWidth="0.09"
+                  strokeDasharray="1.2 2.4"
+                  className="iw-data-drift"
+                  style={{ animationDuration: `${r.dashSpeed}s` }}
+                />
+                <circle
+                  ref={(el) => {
+                    routeDotRefs.current[i] = el;
+                  }}
+                  r="0.5"
+                  fill={r.gold ? `rgba(${secondaryRGB},0.6)` : `rgba(${primaryRGB},0.55)`}
+                  style={{ opacity: 0 }}
+                />
+              </g>
+            ))}
+          </>
+        ) : isNetwork ? (
+          <>
+            {/* knowledge-graph mesh — quiet curved connections between discovered companies */}
+            {KNOWLEDGE_GRAPH_LINKS.map((link, i) => {
+              const A = COMPANY_NODES[link.a];
+              const B = COMPANY_NODES[link.b];
+              return (
+                <path
+                  key={`kg-${i}`}
+                  d={`M${A.x},${A.y} Q${(A.x + B.x) / 2},${(A.y + B.y) / 2 - 5} ${B.x},${B.y}`}
+                  fill="none"
+                  stroke={`rgba(${primaryRGB},0.035)`}
+                  strokeWidth="0.07"
+                />
+              );
+            })}
+
+            {/* discovered-company nodes */}
+            {COMPANY_NODES.map((n, i) => (
+              <circle
+                key={`company-${i}`}
+                cx={n.x}
+                cy={n.y}
+                r={n.r}
+                fill="none"
+                stroke={n.gold ? `rgba(${secondaryRGB},0.2)` : `rgba(${primaryRGB},0.16)`}
+                strokeWidth="0.1"
+                className="animate-pulse-soft"
+                style={{ animationDuration: `${n.duration}s`, animationDelay: `${n.delay}s` }}
+              />
+            ))}
+
+            {/* AI decision pulses at a subset of company nodes */}
+            {DECISION_PULSE_RINGS.map((p, i) => (
+              <circle
+                key={`decision-${i}`}
+                cx={p.x}
+                cy={p.y}
+                r={0.6}
+                fill="none"
+                stroke={p.gold ? `rgba(${secondaryRGB},0.18)` : `rgba(${primaryRGB},0.15)`}
+                strokeWidth="0.11"
+                className="iw-data-pulse-ring"
+                style={{ animationDuration: `${p.duration}s`, animationDelay: `${p.delay}s` }}
+              />
+            ))}
+
+            {/* CRM card outlines — small rounded records drifting gently */}
+            {CRM_CARD_OUTLINES.map((c) => (
+              <rect
+                key={`crm-${c.i}`}
+                x={c.x}
+                y={c.y}
+                width={c.w}
+                height={c.h}
+                rx={0.3}
+                fill="none"
+                stroke={c.gold ? `rgba(${secondaryRGB},0.03)` : `rgba(${primaryRGB},0.026)`}
+                strokeWidth="0.07"
+                className="iw-page-drift"
+                style={{ animationDuration: `${c.duration}s`, animationDelay: `${c.delay}s` }}
+              />
+            ))}
+
+            {/* email glyphs — a simple envelope stroke, marking outreach in flight */}
+            {EMAIL_GLYPHS.map((e, i) => (
+              <path
+                key={`email-${i}`}
+                d={`M${e.x - e.size / 2},${e.y - e.size / 3} h${e.size} v${(e.size * 2) / 3} h-${e.size} Z M${e.x - e.size / 2},${e.y - e.size / 3} L${e.x},${e.y} L${e.x + e.size / 2},${e.y - e.size / 3}`}
+                fill="none"
+                stroke={e.gold ? `rgba(${secondaryRGB},0.16)` : `rgba(${primaryRGB},0.13)`}
+                strokeWidth="0.08"
+                className="animate-pulse-soft"
+                style={{ animationDuration: `${e.duration}s`, animationDelay: `${e.delay}s` }}
+              />
+            ))}
+
+            {/* conversation threads — a subset of the graph carrying a single traveling pulse */}
+            {OUTREACH_THREADS.map((r, i) => (
+              <g key={`thread-${r.i}`}>
+                <path
+                  ref={(el) => {
+                    routePathRefs.current[i] = el;
+                  }}
+                  d={r.d}
+                  fill="none"
+                  stroke={r.gold ? `rgba(${secondaryRGB},0.06)` : `rgba(${primaryRGB},0.05)`}
+                  strokeWidth="0.08"
                   strokeDasharray="1.2 2.4"
                   className="iw-data-drift"
                   style={{ animationDuration: `${r.dashSpeed}s` }}

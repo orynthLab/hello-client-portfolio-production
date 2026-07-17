@@ -18,18 +18,22 @@ const VISITED_KEY = "hc-core-visited";
 // systems, not the emblem itself.
 const CENTER = { x: 50, y: 52.3 };
 
-// Hand-placed, not formulaic: the flagship dominates upper-left, the rest
-// cascade down-right in decreasing size, and the meta system stays small and
-// close. No symmetry, no equal spacing, no perfect circle.
+// Six systems, evenly spaced at 72° around the Core — the geometry this
+// stage was always meant to hold, not five-plus-one squeezed to fit. The
+// flagship still leads (upper-left, largest), the rest cascade clockwise
+// in priority order, and the meta system keeps its own small, quiet,
+// off-circle position near center — unchanged from the five-node layout.
 //
-// Slot order follows priority (flagship first): Financial Report Agent ->
-// Investment Advisory Agent -> Document Identifier & Verifier -> IGC
-// Logistics Platform -> the meta system (always last, always quiet).
+// Slot order follows priority (flagship first): Autonomous Business
+// Development Agent -> Investment Advisory Agent -> Financial Report Agent
+// -> Document Identifier & Verifier -> IGC Logistics Platform -> the meta
+// system (always last, always quiet).
 const LAYOUT: Record<string, { x: number; y: number; path: string; flagship?: boolean }> = {
-  "company-financial-report-agent": { x: 23.75, y: 25, path: "M50,52.3 Q35,31.8 23.75,25", flagship: true },
-  "investment-advisory-agent": { x: 76.25, y: 38.6, path: "M50,52.3 Q65,38.6 76.25,38.6" },
-  "document-identifier-verifier": { x: 80, y: 72.7, path: "M50,52.3 Q67.5,63.6 80,72.7" },
-  "igc-logistics-platform": { x: 32.5, y: 81.8, path: "M50,52.3 Q40,72.7 32.5,81.8" },
+  "autonomous-business-development-agent": { x: 24.6, y: 34.5, path: "M50,52.3 Q40,39.6 24.6,34.5", flagship: true },
+  "investment-advisory-agent": { x: 59.1, y: 22.7, path: "M50,52.3 Q59,38.9 59.1,22.7" },
+  "company-financial-report-agent": { x: 81, y: 51.8, path: "M50,52.3 Q65.6,56.7 81,51.8" },
+  "document-identifier-verifier": { x: 60.1, y: 81.6, path: "M50,52.3 Q50.65,68.5 60.1,81.6" },
+  "igc-logistics-platform": { x: 25.2, y: 71, path: "M50,52.3 Q34.8,57.9 25.2,71" },
 };
 const META_LAYOUT = { x: 52.5, y: 65, path: "M50,52.3 Q51,60.2 52.5,65" };
 

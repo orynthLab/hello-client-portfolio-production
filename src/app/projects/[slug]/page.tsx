@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { projects, getProject, metaSystem } from "@/data/projects";
 import ProjectWorkflow from "@/components/ProjectWorkflow";
+import BusinessDevelopmentAgentWorld from "@/components/BusinessDevelopmentAgentWorld";
 import InvestmentWorld from "@/components/InvestmentWorld";
 import FinancialReportWorld from "@/components/FinancialReportWorld";
 import DocumentTrustEngine from "@/components/DocumentTrustEngine";
@@ -29,6 +30,7 @@ export async function generateMetadata({
   const project = getProject(slug);
   if (!project) return {};
   const worldTitles: Record<string, string> = {
+    "autonomous-business-development-agent": "Autonomous Business Development Agent — Hello Client",
     "investment-advisory-agent": "Investment Intelligence Engine — Hello Client",
     "company-financial-report-agent": "Financial Intelligence Workspace — Hello Client",
     "document-identifier-verifier": "Document Trust Engine — Hello Client",
@@ -58,6 +60,9 @@ export default async function ProjectPage({
 
   // Phase 3 — each project is its own world, built on the same shared
   // project-world system (see src/components/investment-world/).
+  if (slug === "autonomous-business-development-agent") {
+    return <BusinessDevelopmentAgentWorld />;
+  }
   if (slug === "investment-advisory-agent") {
     return <InvestmentWorld />;
   }

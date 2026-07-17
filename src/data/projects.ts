@@ -40,6 +40,37 @@ export const metaSystem: MetaSystem = {
 
 export const projects: Project[] = [
   {
+    slug: "autonomous-business-development-agent",
+    name: "Autonomous Business Development Agent",
+    tagline: "An AI employee that discovers companies, researches them, writes personalized outreach, and manages the entire pipeline in a Google Sheet CRM — with a human approval gate in front of every send.",
+    category: "Autonomous Business Development",
+    accent: "#ff8a5c",
+    year: "2026",
+    stack: ["TypeScript", "Node.js", "Claude", "Gemini", "Cheerio", "Google Sheets API", "Gmail API", "Telegram Bot API"],
+    metrics: [
+      { label: "Tests passing", value: "347/347" },
+      { label: "Phases shipped", value: "12/12" },
+      { label: "Documented decisions", value: "72" },
+    ],
+    nodes: [
+      { key: "intro", label: "Introduction", body: "Business development at a small studio is one person doing five jobs: finding companies worth pitching, reading every one of their websites, writing a personal email instead of a template, and remembering to follow up — every single day." },
+      { key: "problem", label: "Problem", body: "Manual prospecting doesn't scale with one person's hours in a day, and the moment it gets rushed, outreach turns into the generic, unresearched email everyone already ignores." },
+      { key: "challenge", label: "Business Challenge", body: "The system needed to act like a careful, well-researched business development hire — not a spam tool — while still leaving a human in control of every email that actually goes out." },
+      { key: "solution", label: "Our Solution", body: "A daily pipeline that discovers candidate companies against a configurable ICP, researches each one's real website, decides whether it's a genuine fit and for which service, finds a named decision maker, drafts one personalized email, and tracks the whole relationship in a Google Sheet CRM — with DRY_RUN safety on by default and Manual Action able to pull any company out of automation at any time." },
+      { key: "architecture", label: "Architecture", body: "Seven independently-tested stages — Discovery, Website Research, Business Analysis, Decision Maker Discovery, Email Generation, Gmail Integration, and Follow-up — run behind one composition root (POST /run-pipeline), each isolated so one company's failure never halts the rest of the run, with Claude and Gemini interchangeable behind a single AI provider interface. A lightweight static ops dashboard reads live stats and companies from the CRM and can trigger a run manually." },
+      { key: "flow", label: "AI Flow", body: "Discovery finds candidate companies -> Website Research reads and summarizes their real site -> Business Analysis qualifies and picks the best-fit service -> Decision Maker Discovery finds a named, verified contact -> Email Generation drafts one personalized email -> Gmail sends it (or DRY_RUN simulates it) -> Follow-up Engine re-checks for replies -> Telegram reports the day's results." },
+      { key: "stack", label: "Tech Stack", body: "TypeScript throughout, Claude and Gemini behind a shared AI provider interface, Cheerio for website research, the Gmail and Google Sheets APIs for sending and CRM, and the Telegram Bot API for daily operational summaries — no framework, just a minimal Node HTTP server as the integration seam for a scheduler or n8n." },
+      { key: "demo", label: "Demo", body: "A single POST /run-pipeline call runs Discovery through Telegram end to end, entirely in DRY_RUN mode by default — every stage runs for real except the actual Gmail send, so the full pipeline can be verified safely before a single real email goes out." },
+      { key: "screens", label: "Screenshots", body: "The Google Sheet CRM as the operational source of truth, and the daily Telegram summary reporting this run's results alongside a live Needs Review backlog." },
+      { key: "impact", label: "Business Impact", body: "347 tests across 50 test files, all passing; 72 documented decisions recording every reconciled requirement gap; and a production-readiness pass that caught and fixed the two real blocking issues (Manual Action enforcement, missing entrypoint) before v1.0 shipped." },
+      { key: "results", label: "Client Results", body: "A personal, single-user automation built and hardened across 12 independently-approved phases — the CRM, the AI reasoning, and the send pipeline are real and working; discovery-source connectivity (Clutch, Wellfound, LinkedIn) is the one piece still an intentional, documented placeholder." },
+      { key: "future", label: "Future Scope", body: "Connecting the remaining discovery sources, multi-agent collaboration on larger accounts, and CRM sync into HubSpot or Salesforce once a team — not just one operator — needs to see the pipeline." },
+      { key: "live", label: "Live Demo", body: "A DRY_RUN walkthrough of a full pipeline run — real discovery, real research, real drafted email — with no real send, is available on request." },
+      { key: "case", label: "Case Study", body: "Full writeup on keeping a human approval gate in front of every automated send without turning the agent into just a faster way to generate spam." },
+      { key: "contact", label: "Contact", body: "If business development still means one person doing five jobs by hand, let's talk about what a supervised AI pipeline would take off their plate." },
+    ],
+  },
+  {
     slug: "company-financial-report-agent",
     name: "Financial Intelligence Workspace",
     tagline: "An agent that reads a company's full financial disclosures and turns them into a structured, cited brief an analyst can trust in minutes, not days.",
