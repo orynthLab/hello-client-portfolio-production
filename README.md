@@ -161,4 +161,4 @@ discuss access to the production implementation.
 
 ## Contact
 
-**devverma9818@gmail.com**
+**contact@orynthbuild.site**

@@ -9,7 +9,7 @@ import { useModalA11y } from "@/components/useModalA11y";
 // Submits to Web3Forms — no backend, no server code on our side. Unlike a
 // direct-to-Google-Forms POST, this endpoint actually supports CORS and
 // returns a real JSON response, so success/failure here is verified, not
-// assumed. Submissions land as emails at devverma9818@gmail.com.
+// assumed. Submissions land as emails at contact@orynthbuild.site.
 //
 // The access key is a Web3Forms "public" key by design — it's submitted from
 // client-side JS on every request no matter what, the same way a reCAPTCHA
@@ -185,7 +185,7 @@ export default function ContactModal({
                 )}
 
                 <p className="mt-4 border-t border-glass-border pt-3 font-mono text-[10px] text-ink-faint">
-                  devverma9818@gmail.com
+                  contact@orynthbuild.site
                 </p>
               </GlassPanel>
             </motion.div>
