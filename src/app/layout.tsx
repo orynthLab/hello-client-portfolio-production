@@ -25,7 +25,7 @@ const SITE_URL = "https://www.orynthbuild.site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "OrynthBuild — White-Label Execution Agency for AI, Web & Full-Stack Development",
+    default: "OrynthBuild — AI Agents, MVPs & Full-Stack Development",
     template: "%s | OrynthBuild",
   },
   description:
@@ -72,15 +72,15 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "OrynthBuild",
-    title: "OrynthBuild — White-Label Execution Agency for AI, Web & Full-Stack Development",
+    title: "OrynthBuild — AI Agents, MVPs & Full-Stack Development",
     description:
-      "White-label execution and tech partner for founders and agencies worldwide — full-stack web, AI agents, and outsourced product builds delivered under your brand.",
+      "AI agent development, MVP builds, automation, and full-stack web & app development for founders and businesses worldwide — direct, or white-label for agencies.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OrynthBuild — White-Label Execution Agency for AI, Web & Full-Stack Development",
+    title: "OrynthBuild — AI Agents, MVPs & Full-Stack Development",
     description:
-      "White-label execution and tech partner for founders and agencies worldwide — full-stack web, AI agents, and outsourced product builds delivered under your brand.",
+      "AI agent development, MVP builds, automation, and full-stack web & app development for founders and businesses worldwide — direct, or white-label for agencies.",
   },
   robots: {
     index: true,

@@ -44,7 +44,7 @@ export default async function Image() {
             maxWidth: 980,
           }}
         >
-          White-Label Execution Agency for AI, Web &amp; Full-Stack Development
+          AI Agents, MVPs &amp; Full-Stack Development
         </div>
         <div
           style={{
@@ -55,7 +55,7 @@ export default async function Image() {
             maxWidth: 900,
           }}
         >
-          A tech execution partner for founders and agencies worldwide.
+          For founders and businesses worldwide — direct, or white-label for agencies.
         </div>
       </div>
     ),
