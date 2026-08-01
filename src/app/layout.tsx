@@ -25,17 +25,22 @@ const SITE_URL = "https://www.orynthbuild.site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "OrynthBuild — AI Agents, MVPs & Full-Stack Development",
+    default: "OrynthBuild — AI, ML, Web & App Development, Tech Partner",
     template: "%s | OrynthBuild",
   },
   description:
-    "OrynthBuild builds AI agents, MVPs, automation, and full-stack websites & apps for founders, startups, and businesses in any industry, worldwide — plus white-label execution for agencies who need extra engineering capacity. Hello Client is one of our own products.",
+    "OrynthBuild builds AI agents, machine learning tools, websites, UI/UX, and apps for founders, startups, and businesses in any industry, worldwide — as a direct build, or white-label under an agency's brand. Hello Client is one of our own products.",
   keywords: [
     "custom software development company",
     "software development for businesses",
     "business website development",
     "custom web application development",
     "digital product development company",
+    "machine learning development company",
+    "ML development agency",
+    "UI UX design agency",
+    "UI UX design company",
+    "app development company",
     "white label execution agency",
     "white label development agency",
     "white label tech partner",
@@ -72,15 +77,15 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "OrynthBuild",
-    title: "OrynthBuild — AI Agents, MVPs & Full-Stack Development",
+    title: "OrynthBuild — AI, ML, Web & App Development, Tech Partner",
     description:
-      "AI agent development, MVP builds, automation, and full-stack web & app development for founders and businesses worldwide — direct, or white-label for agencies.",
+      "AI agents, machine learning tools, websites, UI/UX, and apps for founders and businesses worldwide — direct, or white-label under your agency's brand.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OrynthBuild — AI Agents, MVPs & Full-Stack Development",
+    title: "OrynthBuild — AI, ML, Web & App Development, Tech Partner",
     description:
-      "AI agent development, MVP builds, automation, and full-stack web & app development for founders and businesses worldwide — direct, or white-label for agencies.",
+      "AI agents, machine learning tools, websites, UI/UX, and apps for founders and businesses worldwide — direct, or white-label under your agency's brand.",
   },
   robots: {
     index: true,
@@ -102,16 +107,18 @@ const organizationJsonLd = {
   url: SITE_URL,
   email: "contact@orynthbuild.site",
   description:
-    "OrynthBuild builds AI agents, MVPs, automation, and full-stack websites & apps for businesses in any industry worldwide, and delivers white-label execution for agencies under their own brand.",
+    "OrynthBuild builds AI agents, machine learning tools, websites, UI/UX, and apps for businesses in any industry worldwide, as a direct build or white-label under an agency's brand.",
   slogan: "We build what you need to ship — for your business, or under your brand.",
   areaServed: ["Worldwide", "India"],
   knowsAbout: [
-    "White-Label Software Development",
     "AI Agent Development",
+    "Machine Learning Development",
     "MVP Development",
     "Workflow Automation",
     "Full-Stack Web Development",
+    "UI/UX Design",
     "App Development",
+    "White-Label Software Development",
   ],
   hasOfferCatalog: {
     "@type": "OfferCatalog",
@@ -123,6 +130,15 @@ const organizationJsonLd = {
           "@type": "Service",
           name: "AI Agent Development",
           description: "Design and engineering of production AI agents for founders and agencies.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Machine Learning Development",
+          description: "ML tools and models built into real products, not standalone notebooks.",
           areaServed: ["Worldwide", "India"],
         },
       },
@@ -157,6 +173,15 @@ const organizationJsonLd = {
         "@type": "Offer",
         itemOffered: {
           "@type": "Service",
+          name: "UI/UX Design",
+          description: "Interface and experience design for websites, apps, and products.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
           name: "White-Label Execution",
           description: "Outsourced product and engineering execution delivered under a client's own brand.",
           areaServed: ["Worldwide", "India"],
@@ -175,7 +200,7 @@ const faqJsonLd = {
       name: "What does OrynthBuild build?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "OrynthBuild builds AI agents, MVPs, workflow automation systems, and full-stack websites and apps — from first line of code to deployed, working software.",
+        text: "OrynthBuild builds AI agents, machine learning tools, MVPs, workflow automation systems, and full-stack websites, UI/UX, and apps — from first line of code to deployed, working software.",
       },
     },
     {

@@ -44,7 +44,7 @@ export default async function Image() {
             maxWidth: 980,
           }}
         >
-          AI Agents, MVPs &amp; Full-Stack Development
+          AI, ML, Web &amp; App Development, Tech Partner
         </div>
         <div
           style={{
