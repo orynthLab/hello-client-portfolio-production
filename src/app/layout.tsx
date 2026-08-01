@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | OrynthBuild",
   },
   description:
-    "OrynthBuild is a white-label execution and tech partner for founders and agencies worldwide — full-stack web development, AI agent engineering, and outsourced product builds delivered under your brand, on time. Hello Client is one of our own products.",
+    "OrynthBuild is a white-label execution and tech partner for founders and agencies worldwide — AI agent development, MVP development, workflow automation, and full-stack web & app development delivered under your brand, on time. Hello Client is one of our own products.",
   keywords: [
     "white label execution agency",
     "white label development agency",
@@ -38,10 +38,21 @@ export const metadata: Metadata = {
     "tech execution partner",
     "outsource web development",
     "outsource software development",
+    "outsource app development",
     "full stack development agency",
+    "full stack development company India",
     "AI agent development agency",
-    "AI product studio",
+    "AI agent development company",
+    "MVP development agency",
+    "MVP development company India",
+    "startup MVP development",
+    "workflow automation agency",
+    "business automation company",
+    "app development agency",
+    "web development agency India",
+    "web development company India",
     "product engineering partner",
+    "AI product studio",
     "OrynthBuild",
     "Hello Client",
   ],
@@ -86,8 +97,68 @@ const organizationJsonLd = {
   url: SITE_URL,
   email: "contact@orynthbuild.site",
   description:
-    "OrynthBuild is a white-label execution and tech partner for founders and agencies worldwide, delivering full-stack web development, AI agent engineering, and outsourced product builds under client brands.",
+    "OrynthBuild is a white-label execution and tech partner for founders and agencies worldwide, delivering AI agent development, MVP development, workflow automation, and full-stack web & app development under client brands.",
   slogan: "White-label execution for teams who need to ship.",
+  areaServed: ["Worldwide", "India"],
+  knowsAbout: [
+    "White-Label Software Development",
+    "AI Agent Development",
+    "MVP Development",
+    "Workflow Automation",
+    "Full-Stack Web Development",
+    "App Development",
+  ],
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "OrynthBuild Services",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "AI Agent Development",
+          description: "Design and engineering of production AI agents for founders and agencies.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "MVP Development",
+          description: "Fast, full-stack MVP builds for startups and founders taking an idea to launch.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Workflow & Business Automation",
+          description: "Automation systems that remove manual, repetitive work from client operations.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "Full-Stack Web & App Development",
+          description: "End-to-end web and app development, from product design through deployment.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: "White-Label Execution",
+          description: "Outsourced product and engineering execution delivered under a client's own brand.",
+          areaServed: ["Worldwide", "India"],
+        },
+      },
+    ],
+  },
 };
 
 // viewportFit: "cover" lets fixed/full-bleed sections draw under the iPhone
