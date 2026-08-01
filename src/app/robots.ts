@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = "https://orynthbuild.site";
+const SITE_URL = "https://www.orynthbuild.site";
 
 export default function robots(): MetadataRoute.Robots {
   return {

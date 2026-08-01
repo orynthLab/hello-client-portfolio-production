@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { projects, metaSystem } from "@/data/projects";
 
-const SITE_URL = "https://orynthbuild.site";
+const SITE_URL = "https://www.orynthbuild.site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

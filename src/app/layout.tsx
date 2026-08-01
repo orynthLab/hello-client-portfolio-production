@@ -20,7 +20,7 @@ const michroma = Michroma({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://orynthbuild.site";
+const SITE_URL = "https://www.orynthbuild.site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
