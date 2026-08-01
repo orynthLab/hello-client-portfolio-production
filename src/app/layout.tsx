@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Michroma } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import CustomCursor from "@/components/CustomCursor";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -276,6 +277,7 @@ export default function RootLayout({
           {children}
         </SmoothScroll>
       </body>
+      <GoogleAnalytics gaId="G-71Y3E7WE85" />
     </html>
   );
 }
