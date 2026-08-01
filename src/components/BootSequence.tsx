@@ -564,7 +564,11 @@ export default function BootSequence({
           ref={wordmarkRef}
           className="text-glossy min-h-[1.2em] whitespace-nowrap text-[clamp(2.3rem,9.5vw,3.6rem)] leading-none will-change-transform sm:text-[6.2vw]"
         >
-          <span ref={typedRef} />
+          <span className="sr-only">
+            OrynthBuild — Hello Client, a white-label execution agency for AI, web &amp; full-stack
+            development
+          </span>
+          <span ref={typedRef} aria-hidden="true" />
           <span
             ref={cursorRef}
             aria-hidden

@@ -19,26 +19,54 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const url = `/projects/${slug}`;
+
   // The meta system isn't in the `projects` array — it's not a client
   // project — so it's special-cased here, ahead of the getProject lookup.
   if (slug === metaSystem.slug) {
+    const title = "Creative Engineering Portfolio";
+    const description = "How ideas become products through design, engineering and intelligent systems.";
     return {
-      title: "Creative Engineering Portfolio — Hello Client",
-      description: "How ideas become products through design, engineering and intelligent systems.",
+      title,
+      description,
+      keywords: ["OrynthBuild", "Hello Client", "creative engineering", "white label execution agency"],
+      alternates: { canonical: url },
+      openGraph: { type: "article", url, title: `${title} | OrynthBuild`, description },
+      twitter: { card: "summary_large_image", title: `${title} | OrynthBuild`, description },
     };
   }
   const project = getProject(slug);
   if (!project) return {};
   const worldTitles: Record<string, string> = {
-    "autonomous-business-development-agent": "Autonomous Business Development Agent — Hello Client",
-    "investment-advisory-agent": "Investment Intelligence Engine — Hello Client",
-    "company-financial-report-agent": "Financial Intelligence Workspace — Hello Client",
-    "document-identifier-verifier": "Document Trust Engine — Hello Client",
-    "igc-logistics-platform": "Logistics Operations Hub — Hello Client",
+    "autonomous-business-development-agent": "Autonomous Business Development Agent",
+    "investment-advisory-agent": "Investment Intelligence Engine",
+    "company-financial-report-agent": "Financial Intelligence Workspace",
+    "document-identifier-verifier": "Document Trust Engine",
+    "igc-logistics-platform": "Logistics Operations Hub",
   };
+  const title = worldTitles[slug] ?? project.name;
   return {
-    title: worldTitles[slug] ?? `${project.name} — Hello Client`,
+    title,
     description: project.tagline,
+    keywords: [
+      project.name,
+      project.category,
+      "white label execution agency",
+      "OrynthBuild case study",
+      ...project.stack,
+    ],
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      title: `${title} | OrynthBuild`,
+      description: project.tagline,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | OrynthBuild`,
+      description: project.tagline,
+    },
   };
 }
 
