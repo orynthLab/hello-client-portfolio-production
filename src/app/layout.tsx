@@ -107,6 +107,13 @@ const organizationJsonLd = {
   name: "OrynthBuild",
   url: SITE_URL,
   email: "contact@orynthbuild.site",
+  sameAs: [
+    "https://clutch.co/profile/orynthbuild",
+    "https://www.goodfirms.co/company/orynthbuild",
+    "https://www.linkedin.com/company/orynthbuild",
+    "https://www.instagram.com/orynthbuild.tech/",
+    "https://www.facebook.com/profile.php?id=61592485095565",
+  ],
   description:
     "OrynthBuild builds AI agents, machine learning tools, websites, UI/UX, and apps for businesses in any industry worldwide, as a direct build or white-label under an agency's brand.",
   slogan: "We build what you need to ship — for your business, or under your brand.",
