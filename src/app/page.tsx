@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import BootSequence from "@/components/BootSequence";
 import TheCore from "@/components/TheCore";
+import { isMobileViewport } from "@/components/investment-world/motion";
 
 const ParticleField = dynamic(() => import("@/components/ParticleField"), {
   ssr: false,
@@ -14,6 +15,18 @@ const BOOT_FLAG = "hc-booted";
 export default function Home() {
   const [hubMounted, setHubMounted] = useState(false);
   const [heroMounted, setHeroMounted] = useState(true);
+  // A continuous WebGL/Three.js render loop (mouse-parallax particles) is
+  // the single heaviest thing on this page — fine on desktop (99 Lighthouse
+  // performance), but on a 4x-throttled mobile CPU its bundle fetch/eval and
+  // per-frame work were the dominant cost behind a 500ms+ TBT and a ~7s TTI.
+  // Same treatment as every other purely-ambient effect elsewhere in this
+  // codebase (WorldBackground's glow tweens, blur filters, etc.): skip it
+  // entirely on mobile rather than trying to make WebGL cheap there.
+  const [showParticles, setShowParticles] = useState(false);
+
+  useEffect(() => {
+    setShowParticles(!isMobileViewport());
+  }, []);
 
   useEffect(() => {
     // One-time bootstrap read of client-only storage; cannot be known
@@ -58,7 +71,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-dvh w-full bg-void">
-      <ParticleField />
+      {showParticles && <ParticleField />}
       {hubMounted && <TheCore />}
       {heroMounted && (
         <BootSequence onReveal={handleBootReveal} onExitComplete={handleBootExitComplete} />

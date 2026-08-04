@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
@@ -33,6 +33,14 @@ export default function CreativeEngineeringSystem() {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const returningRef = useRef(false);
+  // Same mobile-performance treatment as page.tsx's own ParticleField mount —
+  // see the comment there. A continuous WebGL render loop is the heaviest
+  // thing this world can render; skip it on mobile entirely.
+  const [showParticles, setShowParticles] = useState(false);
+
+  useEffect(() => {
+    setShowParticles(!isMobileViewport());
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -68,7 +76,7 @@ export default function CreativeEngineeringSystem() {
          viewport — the same containing-block gotcha documented elsewhere in this
          framework, just triggered by will-change instead of an applied transform.
          Matches how page.tsx itself keeps ParticleField outside anything animated. */}
-      <ParticleField />
+      {showParticles && <ParticleField />}
       <div ref={rootRef} className="relative w-full" style={{ willChange: "transform, opacity, filter" }}>
         <Arrival
           titleLines={creativeEngineeringSystemContent.heroTitleLines}
