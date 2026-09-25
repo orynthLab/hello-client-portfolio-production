@@ -13,6 +13,40 @@ export function generateStaticParams() {
   return [...projects.map((p) => ({ slug: p.slug })), { slug: metaSystem.slug }];
 }
 
+function ProjectStructuredData({ slug, name, description }: { slug: string; name: string; description: string }) {
+  const url = `https://www.orynthbuild.site/projects/${slug}`;
+  const projectJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name,
+    description,
+    url,
+    author: { "@id": "https://www.orynthbuild.site/#organization" },
+    publisher: { "@id": "https://www.orynthbuild.site/#organization" },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.orynthbuild.site/" },
+      { "@type": "ListItem", position: 2, name, item: url },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(projectJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+    </>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -80,7 +114,16 @@ export default async function ProjectPage({
   // The closing chapter — not a client project, so it's checked before the
   // `projects` array lookup below (it deliberately isn't in that array).
   if (slug === metaSystem.slug) {
-    return <CreativeEngineeringSystem />;
+    return (
+      <>
+        <ProjectStructuredData
+          slug={slug}
+          name={metaSystem.name}
+          description={metaSystem.tagline}
+        />
+        <CreativeEngineeringSystem />
+      </>
+    );
   }
 
   const project = getProject(slug);
@@ -89,23 +132,28 @@ export default async function ProjectPage({
   // Phase 3 — each project is its own world, built on the same shared
   // project-world system (see src/components/investment-world/).
   if (slug === "autonomous-business-development-agent") {
-    return <BusinessDevelopmentAgentWorld />;
+    return <><ProjectStructuredData slug={slug} name={project.name} description={project.tagline} /><BusinessDevelopmentAgentWorld /></>;
   }
   if (slug === "investment-advisory-agent") {
-    return <InvestmentWorld />;
+    return <><ProjectStructuredData slug={slug} name={project.name} description={project.tagline} /><InvestmentWorld /></>;
   }
   if (slug === "company-financial-report-agent") {
-    return <FinancialReportWorld />;
+    return <><ProjectStructuredData slug={slug} name={project.name} description={project.tagline} /><FinancialReportWorld /></>;
   }
   if (slug === "document-identifier-verifier") {
-    return <DocumentTrustEngine />;
+    return <><ProjectStructuredData slug={slug} name={project.name} description={project.tagline} /><DocumentTrustEngine /></>;
   }
   if (slug === "igc-logistics-platform") {
-    return <LogisticsOperationsHub />;
+    return <><ProjectStructuredData slug={slug} name={project.name} description={project.tagline} /><LogisticsOperationsHub /></>;
   }
 
   const currentIndex = projects.findIndex((p) => p.slug === slug);
   const next = projects[(currentIndex + 1) % projects.length];
 
-  return <ProjectWorkflow project={project} next={next.slug === project.slug ? undefined : next} />;
+  return (
+    <>
+      <ProjectStructuredData slug={slug} name={project.name} description={project.tagline} />
+      <ProjectWorkflow project={project} next={next.slug === project.slug ? undefined : next} />
+    </>
+  );
 }

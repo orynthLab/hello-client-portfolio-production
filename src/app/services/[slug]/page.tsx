@@ -52,9 +52,34 @@ export default async function ServicePage({
   const relatedProjects = service.relatedProjectSlugs
     .map((s) => getProject(s))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
+  const serviceUrl = `https://www.orynthbuild.site/services/${service.slug}`;
+  const serviceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.name,
+    description: service.description,
+    url: serviceUrl,
+    provider: { "@id": "https://www.orynthbuild.site/#organization" },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.orynthbuild.site/" },
+      { "@type": "ListItem", position: 2, name: service.name, item: serviceUrl },
+    ],
+  };
 
   return (
     <div className="relative min-h-dvh w-full bg-void">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="safe-top safe-left fixed z-40 flex items-center gap-3">
         <AIBrandMark />
         <Link
