@@ -20,6 +20,8 @@ export type Service = {
   faqs: ServiceFaq[];
   relatedProjectSlugs: string[];
   relatedServiceSlugs: string[];
+  visualPresentation?: "project";
+  capabilities?: string[];
 };
 
 export const services: Service[] = [
@@ -343,6 +345,210 @@ export const services: Service[] = [
       },
     ],
     relatedProjectSlugs: ["autonomous-business-development-agent", "igc-logistics-platform"],
+    relatedServiceSlugs: ["ai-agent-development", "mvp-development", "full-stack-development"],
+  },
+  {
+    slug: "document-ai",
+    name: "Document AI Development",
+    seoTitle: "Document AI Development",
+    eyebrow: "Document Intelligence",
+    tagline:
+      "Document AI systems that classify, extract, and verify information while keeping uncertain cases visible for review.",
+    description:
+      "Document AI development for classification, OCR, extraction, and verification, with validation and human review for uncertain results.",
+    accent: "#52f2ff",
+    visualPresentation: "project",
+    capabilities: ["Classification", "OCR & extraction", "Verification", "Source grounding"],
+    sections: [
+      {
+        heading: "Classify documents before processing",
+        body: "Intelligent document processing starts by identifying files with different formats, fields, and review rules. A classification step can identify the document type and route it to the appropriate extraction or analysis path, as demonstrated by the identity-document verification project.",
+      },
+      {
+        heading: "Extract fields and parse structured information",
+        body: "AI document processing can use OCR and document extraction to turn relevant text into structured fields for downstream review. Financial documents may also contain structured data such as XBRL alongside narrative disclosure; the Financial Intelligence Workspace combines those sources rather than treating every document as plain text.",
+      },
+      {
+        heading: "Validate results against context and source",
+        body: "Extracted values need checks appropriate to the document and task. For document verification automation, the identity-verification project describes cross-checks against document-specific layouts and anomaly flags. The financial-report project grounds brief claims in filing passages and checks them against their sources.",
+      },
+      {
+        heading: "Keep uncertainty and review paths explicit",
+        body: "OCR errors, incomplete files, unfamiliar layouts, or conflicting values can make an automated result unreliable. Confidence checks can identify cases for human review, and the workflow should make missing information and reasons for a flag visible instead of silently treating every extraction as correct.",
+      },
+      {
+        heading: "Connect document processing to the wider workflow",
+        body: "Document AI can feed an existing review queue, analyst workspace, or operations process when the required system interfaces and data access are available. Integration scope depends on the source documents, destination systems, access rules, and how exceptions should be handled.",
+      },
+      {
+        heading: "Examples and practical limits",
+        body: "OrynthBuild’s project records show two distinct document applications: identity-document classification, OCR, and verification; and financial-disclosure parsing with cited source material. These examples do not mean every document type can be processed without configuration, validation, or reviewer involvement.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What is document AI development?",
+        answer:
+          "It is the development of software that classifies documents, extracts or parses relevant information, and supports a follow-up workflow such as verification or analyst review. The methods depend on the document types and the task.",
+      },
+      {
+        question: "Can document AI extract data with OCR?",
+        answer:
+          "OCR can convert text in supported documents into machine-readable content. A production workflow may also need document classification, field validation, checks against context, and review for uncertain results.",
+      },
+      {
+        question: "How do you handle uncertain document results?",
+        answer:
+          "The workflow should define checks and confidence criteria for the use case, then route unclear, incomplete, or conflicting cases to a person with useful context about what needs review.",
+      },
+      {
+        question: "Can document AI cite its sources?",
+        answer:
+          "For retrieval-based analysis, responses can be grounded in relevant source passages when those sources are available and the system is designed to preserve that connection. The financial-report project record describes cited filing passages and a verification step.",
+      },
+      {
+        question: "Does document AI work with every file or document type?",
+        answer:
+          "No. Supported formats, layouts, languages, scan quality, and extraction needs affect the design. New or changed document types require evaluation, and uncertain cases may still need human review.",
+      },
+    ],
+    relatedProjectSlugs: ["document-identifier-verifier", "company-financial-report-agent"],
+    relatedServiceSlugs: ["workflow-automation", "ai-agent-development", "full-stack-development"],
+  },
+  {
+    slug: "fintech-software-development",
+    name: "Fintech Software Development",
+    seoTitle: "Fintech Software Development",
+    eyebrow: "Financial Software",
+    tagline:
+      "Financial software for research, analysis, onboarding, and review workflows, built around clear data provenance and human decision-making.",
+    description:
+      "Fintech software development for financial data, research, investment decision support, and document workflows, with clear source and review paths.",
+    accent: "#f3d38a",
+    visualPresentation: "project",
+    capabilities: ["Financial data", "Research workflows", "Decision support", "Document processing"],
+    sections: [
+      {
+        heading: "Build around the financial workflow",
+        body: "Financial software needs to support the people and decisions around the data, not just display outputs. The project records span filing analysis, portfolio decision support, and identity-document onboarding; each has a different workflow, source data, and review responsibility.",
+      },
+      {
+        heading: "Financial software and data platforms",
+        body: "The Financial Intelligence Workspace combines structured XBRL data with filing text and produces briefs linked to source passages. This is a concrete example of financial document parsing and a financial data platform for research support; it does not imply that every financial feed, filing format, or reporting requirement is covered by default.",
+      },
+      {
+        heading: "Support research and analyst review",
+        body: "Research software can organize source material, compare information across periods, and make the path from a finding back to its source easier to inspect. The financial-report project record describes cited claims and a verification pass so analysts can review the brief in context.",
+      },
+      {
+        heading: "Keep investment decision support reviewable",
+        body: "The Investment Intelligence Engine project describes portfolio context, risk analysis, and proposed actions prepared for advisor review before anything reaches a client. Financial decisions remain with the responsible human professionals; the software supports analysis and review rather than claiming to provide licensed financial advice.",
+      },
+      {
+        heading: "Handle onboarding documents with explicit checks",
+        body: "The Document Trust Engine project describes document classification, OCR, field checks, and anomaly flags for identity verification workflows. The project record includes routing some cases to human review; any new onboarding system needs its own document coverage, validation, and access requirements defined.",
+      },
+      {
+        heading: "Plan data access, provenance, and integrations",
+        body: "Fintech AI development depends on where information comes from, which users may access it, and how results connect to existing systems. Integration and access decisions should be specific to the client’s sources, permissions, operational needs, and review process; this page makes no claim of regulatory compliance or certification.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What kinds of fintech software are represented in your project work?",
+        answer:
+          "The project records include a financial-disclosure research workspace, an investment decision-support system with advisor review, and identity-document verification for onboarding. They represent those described projects, not a guarantee that every financial product or workflow is in scope.",
+      },
+      {
+        question: "Can financial software show where an insight came from?",
+        answer:
+          "It can be designed to preserve links to source data or passages when the source is available and the workflow supports that traceability. The Financial Intelligence Workspace project describes cited filing passages and a verification step.",
+      },
+      {
+        question: "Does OrynthBuild provide licensed financial advice?",
+        answer:
+          "This software development service does not provide licensed financial advice. The investment project describes decision support prepared for review by an advisor before proposed actions reach a client.",
+      },
+      {
+        question: "Do you guarantee fintech regulatory compliance or certification?",
+        answer:
+          "No such guarantee or certification is represented here. Applicable obligations depend on the product, organization, jurisdiction, and operating model and need to be assessed with the responsible specialists.",
+      },
+      {
+        question: "Can financial software connect to existing data sources?",
+        answer:
+          "Potential integrations depend on the source system’s interfaces, data rights, access controls, and project scope. Those requirements should be assessed and agreed before implementation.",
+      },
+    ],
+    relatedProjectSlugs: ["company-financial-report-agent", "investment-advisory-agent", "document-identifier-verifier"],
+    relatedServiceSlugs: ["ai-agent-development", "document-ai", "full-stack-development"],
+  },
+  {
+    slug: "ai-product-development",
+    name: "AI Product Development",
+    seoTitle: "AI Product Development",
+    eyebrow: "AI Product Engineering",
+    tagline:
+      "AI product development that starts with the user workflow and carries a useful AI capability through interface, evaluation, release, and iteration.",
+    description:
+      "AI product development for teams shaping a complete AI-enabled product, from use-case discovery and integrations to evaluation, release, and iteration.",
+    accent: "#9b6bff",
+    visualPresentation: "project",
+    capabilities: ["Product discovery", "AI capability fit", "Evaluation & review", "Release & iteration"],
+    sections: [
+      {
+        heading: "Start with the product problem",
+        body: "Product discovery clarifies who will use the product, what task they need to complete, and where current work breaks down. The goal is to identify a testable product need before choosing a model or adding AI for its own sake.",
+      },
+      {
+        heading: "Decide where AI adds value",
+        body: "Some product tasks benefit from interpreting documents, retrieving source material, drafting, or reasoning across inputs; predictable steps may be better handled with ordinary software rules. The project records show different patterns, including financial-document analysis, identity verification, investment decision support, and supervised business-development work.",
+      },
+      {
+        heading: "Plan data and system connections",
+        body: "An AI-enabled product depends on the information it can access, the systems it must connect to, and the permissions around those actions. Define data sources, access boundaries, integration methods, and failure behavior as product requirements rather than leaving them until after the model is selected.",
+      },
+      {
+        heading: "Design evaluation, review, and fallback paths",
+        body: "AI outputs need checks that fit the task. Source-grounded answers, document validation, human approval, or a non-AI fallback may be appropriate depending on the consequences of an error. The relevant project records describe citations or human review in their specific workflows; those controls should be designed for each product rather than assumed to transfer automatically.",
+      },
+      {
+        heading: "Build the AI application around the real work",
+        body: "AI application development should help people provide context, understand results, inspect supporting information, and act on the next step. Existing project records describe analyst briefs, review queues, and operational dashboards as parts of broader systems—not AI features detached from a user workflow.",
+      },
+      {
+        heading: "Release, learn, and improve",
+        body: "AI product engineering carries the surrounding application, integrations, operational behavior, and error handling through a production release. After an AI product launch, evaluation and observed use can guide the next changes. This complete product lifecycle is broader than the specialist design of a tool-using AI agent or the early validation scope of an MVP.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What is included in AI product development?",
+        answer:
+          "The scope can include product discovery, selecting an appropriate AI capability, data and integration planning, application interface and workflow, evaluation, review paths, release, and iteration. The exact work depends on the product requirements.",
+      },
+      {
+        question: "How is AI product development different from AI agent development?",
+        answer:
+          "AI product development covers the wider product lifecycle and may include an agent, a document workflow, or another AI-enabled capability. AI agent development focuses specifically on systems that use models with tools or actions to complete defined tasks.",
+      },
+      {
+        question: "How is AI product development different from MVP development?",
+        answer:
+          "MVP development focuses on a first usable product that tests a product hypothesis with real users. AI product development focuses on the broader lifecycle of an AI-enabled product; an AI MVP can be an early stage of that work when validation is the goal.",
+      },
+      {
+        question: "How do you decide whether a product needs AI?",
+        answer:
+          "Start with the user task and compare approaches. AI may help where information is less structured or interpretation is needed; predictable steps may be simpler to handle with explicit software rules. The decision should be tested against the product’s requirements and failure cases.",
+      },
+      {
+        question: "Do AI products always operate without human review?",
+        answer:
+          "No. Review, approval, escalation, and fallback behavior depend on the task and the impact of an incorrect output. The product should make those responsibilities clear to its users.",
+      },
+    ],
+    relatedProjectSlugs: ["company-financial-report-agent", "document-identifier-verifier", "investment-advisory-agent", "autonomous-business-development-agent"],
     relatedServiceSlugs: ["ai-agent-development", "mvp-development", "full-stack-development"],
   },
 ];

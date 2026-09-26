@@ -5,6 +5,7 @@ import { services, getService } from "@/data/services";
 import { getProject } from "@/data/projects";
 import AIBrandMark from "@/components/AIBrandMark";
 import ContactModal from "@/components/ContactModal";
+import ServiceProjectExperience from "@/components/ServiceProjectExperience";
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -84,8 +85,8 @@ export default async function ServicePage({
     })),
   };
 
-  return (
-    <div className="relative min-h-dvh w-full bg-void">
+  const structuredData = (
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
@@ -100,6 +101,25 @@ export default async function ServicePage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
+    </>
+  );
+
+  if (service.visualPresentation === "project") {
+    return (
+      <>
+        {structuredData}
+        <ServiceProjectExperience
+          service={service}
+          projects={relatedProjects}
+          relatedServices={relatedServices}
+        />
+      </>
+    );
+  }
+
+  return (
+    <div className="relative min-h-dvh w-full bg-void">
+      {structuredData}
       <div className="safe-top safe-left fixed z-40 flex items-center gap-3">
         <AIBrandMark />
         <Link
