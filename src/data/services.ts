@@ -35,6 +35,7 @@ export const services: Service[] = [
     description:
       "AI agent development for business workflows: OrynthBuild connects models to your tools and data, with human review where decisions need it.",
     accent: "#52f2ff",
+    visualPresentation: "project",
     sections: [
       {
         heading: "What is an AI agent?",
@@ -105,6 +106,7 @@ export const services: Service[] = [
     description:
       "MVP development services for founders and startups: define the smallest useful product, build it end to end, and prepare it for real user feedback.",
     accent: "#4ee6a8",
+    visualPresentation: "project",
     sections: [
       {
         heading: "Start with product discovery",
@@ -167,6 +169,7 @@ export const services: Service[] = [
     description:
       "AI workflow automation services connect business processes, documents, and existing software while keeping review and exception paths clear.",
     accent: "#f3d38a",
+    visualPresentation: "project",
     sections: [
       {
         heading: "AI automation and traditional automation",
@@ -233,6 +236,7 @@ export const services: Service[] = [
     description:
       "Custom full stack development services for web applications and business software, from interface and APIs to data, integrations, and deployment.",
     accent: "#3b82f6",
+    visualPresentation: "project",
     sections: [
       {
         heading: "Frontend, backend, data, and APIs",
@@ -295,6 +299,7 @@ export const services: Service[] = [
     description:
       "White label software development for agencies that need an engineering partner for web products, AI features, and workflow automation under their brand.",
     accent: "#9b6bff",
+    visualPresentation: "project",
     sections: [
       {
         heading: "How white-label engineering works",
