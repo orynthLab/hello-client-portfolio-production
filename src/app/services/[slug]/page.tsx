@@ -22,19 +22,18 @@ export async function generateMetadata({
   const url = `/services/${service.slug}`;
 
   return {
-    title: service.name,
+    title: service.seoTitle,
     description: service.description,
-    keywords: [service.name, service.eyebrow, "OrynthBuild", "white label execution agency"],
     alternates: { canonical: url },
     openGraph: {
       type: "article",
       url,
-      title: `${service.name} | OrynthBuild`,
+      title: `${service.seoTitle} | OrynthBuild`,
       description: service.description,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${service.name} | OrynthBuild`,
+      title: `${service.seoTitle} | OrynthBuild`,
       description: service.description,
     },
   };
@@ -52,6 +51,9 @@ export default async function ServicePage({
   const relatedProjects = service.relatedProjectSlugs
     .map((s) => getProject(s))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
+  const relatedServices = service.relatedServiceSlugs
+    .map((relatedSlug) => services.find((candidate) => candidate.slug === relatedSlug))
+    .filter((relatedService): relatedService is (typeof services)[number] => Boolean(relatedService));
   const serviceUrl = `https://www.orynthbuild.site/services/${service.slug}`;
   const serviceJsonLd = {
     "@context": "https://schema.org",
@@ -69,6 +71,18 @@ export default async function ServicePage({
       { "@type": "ListItem", position: 2, name: service.name, item: serviceUrl },
     ],
   };
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: service.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
 
   return (
     <div className="relative min-h-dvh w-full bg-void">
@@ -80,6 +94,12 @@ export default async function ServicePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {service.faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <div className="safe-top safe-left fixed z-40 flex items-center gap-3">
         <AIBrandMark />
         <Link
@@ -131,6 +151,50 @@ export default async function ServicePage({
           </section>
         ))}
       </div>
+
+      {service.faqs.length > 0 && (
+        <section className="relative z-10 mx-auto mb-20 max-w-2xl px-6" aria-labelledby="service-faq-heading">
+          <div className="glass-panel rounded-2xl p-6 sm:p-8">
+            <h2 id="service-faq-heading" className="font-display text-lg font-medium text-ink">
+              Frequently asked questions
+            </h2>
+            <div className="mt-5 flex flex-col">
+              {service.faqs.map((faq) => (
+                <div key={faq.question} className="border-t border-glass-border py-5 first:border-t-0 first:pt-0 last:pb-0">
+                  <h3 className="font-display text-sm font-medium text-ink">{faq.question}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-dim">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {relatedServices.length > 0 && (
+        <section className="relative z-10 mx-auto flex max-w-2xl flex-col gap-4 px-6 pb-20" aria-labelledby="related-services-heading">
+          <h2 id="related-services-heading" className="font-mono text-[11px] uppercase tracking-[0.25em] text-ink-faint">
+            Related services
+          </h2>
+          <div className="flex flex-col gap-3">
+            {relatedServices.map((relatedService) => (
+              <Link
+                key={relatedService.slug}
+                href={`/services/${relatedService.slug}`}
+                data-cursor="open"
+                className="glass-panel group flex items-center justify-between rounded-2xl p-5 transition-colors hover:border-cyan/40"
+              >
+                <div>
+                  <p className="font-display text-sm font-medium text-ink">{relatedService.name}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-dim">{relatedService.tagline}</p>
+                </div>
+                <span className="font-mono text-xs text-ink-faint transition-colors group-hover:text-cyan" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {relatedProjects.length > 0 && (
         <div className="relative z-10 mx-auto flex max-w-2xl flex-col gap-4 px-6 pb-20">
