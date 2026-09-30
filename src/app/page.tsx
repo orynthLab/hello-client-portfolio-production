@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import BootSequence from "@/components/BootSequence";
 import TheCore from "@/components/TheCore";
-import { isMobileViewport } from "@/components/investment-world/motion";
+import { useIsMobile } from "@/components/useIsMobile";
 
 const ParticleField = dynamic(() => import("@/components/ParticleField"), {
   ssr: false,
@@ -22,11 +22,9 @@ export default function Home() {
   // Same treatment as every other purely-ambient effect elsewhere in this
   // codebase (WorldBackground's glow tweens, blur filters, etc.): skip it
   // entirely on mobile rather than trying to make WebGL cheap there.
-  const [showParticles, setShowParticles] = useState(false);
-
-  useEffect(() => {
-    setShowParticles(!isMobileViewport());
-  }, []);
+  // Assumed mobile until the real viewport is known, so a phone never starts
+  // fetching the Three.js chunk during hydration only to discard it.
+  const showParticles = !useIsMobile(true);
 
   useEffect(() => {
     // One-time bootstrap read of client-only storage; cannot be known

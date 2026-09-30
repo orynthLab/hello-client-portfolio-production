@@ -16,12 +16,22 @@ const EDGES: [number, number][] = [
 
 export default function AIBrandMark({ className = "" }: { className?: string }) {
   return (
+    // The mark is the only content of this link, and an SVG carries no
+    // accessible name — so without the label this reads to a screen reader
+    // (and to Lighthouse) as a focusable link with nothing in it.
     <Link
       href="/"
-      data-cursor="explore"
+      aria-label="OrynthBuild — home"
       className={`group flex items-center ${className}`}
     >
-      <svg width="34" height="34" viewBox="0 0 32 32" className="shrink-0 transition-transform duration-300 group-hover:scale-110">
+      <svg
+        width="34"
+        height="34"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+        className="shrink-0 transition-transform duration-300 group-hover:scale-110"
+      >
         {EDGES.map(([a, b], i) => (
           <line
             key={i}

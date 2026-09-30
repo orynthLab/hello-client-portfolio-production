@@ -216,7 +216,7 @@ export const businessDevelopmentAgentContent: WorldContent = {
             <LI><Code>CRM</Code> — Google Sheets, via a single reusable upsert service</LI>
             <LI><Code>Communication</Code> — Gmail API (sequential sends), Telegram Bot API (daily summary)</LI>
             <LI><Code>Integration seam</Code> — <Code>POST /run-pipeline</Code>, callable by a scheduler or an n8n workflow</LI>
-            <LI><Code>Ops dashboard</Code> — a lightweight static HTML view (<Code>/dashboard</Code>) reading live stats and companies from the CRM, with a manual pipeline-run trigger — not a framework app, just the server's own static file plus two read-only JSON routes</LI>
+            <LI><Code>Ops dashboard</Code> — a lightweight static HTML view (<Code>/dashboard</Code>) reading live stats and companies from the CRM, with a manual pipeline-run trigger — not a framework app, just the server&apos;s own static file plus two read-only JSON routes</LI>
           </UL>
         ),
       },

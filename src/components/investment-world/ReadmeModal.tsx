@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { pauseWorldForOverlay, resumeWorldForOverlay } from "./motion";
-import { useModalA11y } from "@/components/useModalA11y";
+import Overlay from "@/components/Overlay";
 import type { ReadmeContent } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -46,9 +44,7 @@ export function Code({ children }: { children: React.ReactNode }) {
 export default function ReadmeModal({ content }: { content: ReadmeContent }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
   const close = () => setOpen(false);
-  useModalA11y(open, close, panelRef);
 
   // Portal target only exists on the client — and rendering the overlay via a
   // portal to document.body (rather than inline) means it's never a descendant
@@ -59,43 +55,14 @@ export default function ReadmeModal({ content }: { content: ReadmeContent }) {
     setMounted(true);
   }, []);
 
-  // Nothing behind this overlay is visible while it's open — pause the whole
-  // world's continuous animation so it isn't competing with the modal's own
-  // scrolling for the main thread.
-  useEffect(() => {
-    if (!open) return;
-    pauseWorldForOverlay();
-    return () => resumeWorldForOverlay();
-  }, [open]);
-
   const overlay = (
-    <AnimatePresence>
-      {open && (
-          <motion.div
-            className="fixed inset-0 z-[95] flex items-center justify-center p-4 sm:p-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {/* solid, no backdrop-blur: blurring the world's own continuously
-               animated background every frame was a real, measurable cost —
-               see pauseWorldForOverlay above, which stops that background
-               anyway, so there's nothing live left to blur. */}
-            <motion.div className="absolute inset-0 bg-void/92" onClick={close} />
-
-            <motion.div
-              ref={panelRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label={content.title}
-              tabIndex={-1}
-              initial={{ opacity: 0, y: 24, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.98 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 flex h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-glass-border bg-[#0a0c12] shadow-2xl"
-            >
+    <Overlay
+      open={open}
+      onClose={close}
+      ariaLabel={content.title}
+      scrimClassName="bg-void/92"
+      panelClassName="flex h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-glass-border bg-[#0a0c12] shadow-2xl"
+    >
               {/* file bar — the one deliberate GitHub cue: a filename tab, nothing else borrowed */}
               <div className="flex shrink-0 items-center justify-between border-b border-glass-border bg-white/[0.03] px-5 py-3">
                 <div className="flex items-center gap-2">
@@ -106,7 +73,6 @@ export default function ReadmeModal({ content }: { content: ReadmeContent }) {
                   <span className="font-mono text-xs text-ink-dim">README.md</span>
                 </div>
                 <button
-                  data-cursor="explore"
                   onClick={close}
                   className="text-ink-faint transition-colors hover:text-ink"
                   aria-label="Close documentation"
@@ -135,17 +101,13 @@ export default function ReadmeModal({ content }: { content: ReadmeContent }) {
                   </div>
                 ))}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-    </AnimatePresence>
+    </Overlay>
   );
 
   return (
     <>
       <button
         type="button"
-        data-cursor="explore"
         onClick={() => setOpen(true)}
         className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-dim transition-colors hover:text-cyan"
       >

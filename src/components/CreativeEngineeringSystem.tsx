@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Arrival from "./investment-world/Arrival";
 import StoryScreen from "./investment-world/StoryScreen";
 import ResourcesScreen from "./investment-world/ResourcesScreen";
-import { isMobileViewport } from "./investment-world/motion";
+import { useIsMobile } from "./useIsMobile";
 import {
   creativeEngineeringSystemAccentRGB,
   creativeEngineeringSystemContent,
@@ -36,11 +36,7 @@ export default function CreativeEngineeringSystem() {
   // Same mobile-performance treatment as page.tsx's own ParticleField mount —
   // see the comment there. A continuous WebGL render loop is the heaviest
   // thing this world can render; skip it on mobile entirely.
-  const [showParticles, setShowParticles] = useState(false);
-
-  useEffect(() => {
-    setShowParticles(!isMobileViewport());
-  }, []);
+  const showParticles = !useIsMobile(true);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -59,8 +55,10 @@ export default function CreativeEngineeringSystem() {
       onComplete: () => router.push("/"),
     });
     exit.to(rootRef.current, {
+      // Transform and opacity only — animating a blur across the whole
+      // viewport re-rasterises every pixel of it on every frame, and this
+      // runs while the next route is already being prepared.
       scale: 0.92,
-      ...(isMobileViewport() ? {} : { filter: "blur(20px)" }),
       duration: 0.9,
       ease: "power2.inOut",
     });

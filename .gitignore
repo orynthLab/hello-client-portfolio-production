@@ -53,3 +53,16 @@ docs/brief.txt
 next-env.d.ts
 
 .vercel
+
+# working source material — briefs and raw footage kept beside the project,
+# never shipped. The encoded walkthroughs that DO ship live in public/videos.
+*.docx
+# raw footage dropped at the repo root — the encoded copies that ship live
+# in public/videos/, which this pattern deliberately does not touch.
+/*.mp4
+/*.mov
+
+# local dev/prod server logs (written by `next dev` / `next start` during
+# local verification; never part of the app)
+/dev.log
+/prod.log

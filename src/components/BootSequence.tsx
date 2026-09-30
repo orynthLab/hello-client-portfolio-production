@@ -141,7 +141,7 @@ export default function BootSequence({
   const glowFarRef = useRef<HTMLDivElement>(null);
   const streaksRef = useRef<HTMLDivElement>(null);
   const wordmarkRef = useRef<HTMLHeadingElement>(null);
-  const typedRef = useRef<HTMLSpanElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const dialogueRef = useRef<HTMLDivElement>(null);
@@ -157,7 +157,8 @@ export default function BootSequence({
     const glow = glowRef.current;
     const glowFar = glowFarRef.current;
     const wordmark = wordmarkRef.current;
-    const typed = typedRef.current;
+    const text = textRef.current;
+
     const cursor = cursorRef.current;
     const subtitle = subtitleRef.current;
     const dialogue = dialogueRef.current;
@@ -169,7 +170,7 @@ export default function BootSequence({
       !glow ||
       !glowFar ||
       !wordmark ||
-      !typed ||
+      !text ||
       !cursor ||
       !subtitle ||
       !dialogue ||
@@ -223,6 +224,10 @@ export default function BootSequence({
       // a returning visitor (browser back from the Network) lands here instantly at
       // rest — the conversation already happened once this session, it shouldn't replay
       if (alreadyBooted) {
+        // The characters render at opacity 0 and are revealed by the timeline
+        // below — which never runs for a returning visitor, so the wordmark
+        // has to be shown outright here.
+        gsap.set(text, { clipPath: "none" });
         gsap.set([cursor, subtitle, dialogue, skip], { opacity: 0 });
         gsap.set(cta, { opacity: 1, y: 0, filter: "blur(0px)" });
         return;
@@ -248,28 +253,62 @@ export default function BootSequence({
       tl.to(cursor, { opacity: 1, duration: 0.15 }, 0.05);
       tl.call(() => blink.play(), [], 0.05);
 
-      // 0.1 -> 0.42 — typewriter reveals HELLO, one letter at a time
-      "HELLO".split("").forEach((_, i) => {
-        tl.call(() => { typed.textContent = "HELLO".slice(0, i + 1); }, [], 0.1 + i * 0.08);
+      // Where each character ends, measured once from the laid-out text
+      // rather than guessed — a single Range walk, not a read per frame.
+      const WORDMARK = "HELLO CLIENT";
+      const textNode = text.firstChild;
+      const stops: number[] = [];
+      if (textNode) {
+        const range = document.createRange();
+        for (let i = 1; i <= WORDMARK.length; i++) {
+          range.setStart(textNode, 0);
+          range.setEnd(textNode, i);
+          stops.push(range.getBoundingClientRect().width);
+        }
+      }
+      const fullWidth = stops.length ? stops[stops.length - 1] : 0;
+
+      // The caret is sized and placed from the real text box, so it sits on
+      // the glyphs at any font size instead of at a guessed offset.
+      const lineHeight = text.offsetHeight;
+      gsap.set(cursor, { x: 0, top: lineHeight * 0.17, height: lineHeight * 0.72 });
+
+      const FIRST = 0.12;
+      const PER = 0.075;
+      // a breath after "HELLO", the way the original paused before the
+      // second word landed
+      const GAP_AT = 6;
+      const GAP = 0.18;
+
+      // Only the right edge of the clip does any revealing. The other three sit
+      // just outside the box so the text-stroke, which paints slightly proud of
+      // the glyph outline, isn't shaved off against the line box.
+      const BLEED = "-0.15em";
+      const revealedTo = (edge: number) =>
+        `inset(${BLEED} ${Math.max(0, fullWidth - edge)}px ${BLEED} ${BLEED})`;
+
+      stops.forEach((edge, i) => {
+        const at = FIRST + i * PER + (i >= GAP_AT ? GAP : 0);
+        // the last character drops the clip entirely, so the settled wordmark
+        // carries no clip at all
+        const last = i === stops.length - 1;
+        tl.set(text, { clipPath: last ? "none" : revealedTo(edge) }, at);
+        tl.to(cursor, { x: edge, duration: PER * 0.55, ease: "none" }, at);
       });
 
-      // 0.8 — HELLO becomes HELLO CLIENT: a confident scale + glow pop (table: 0.8s)
-      tl.call(
-        () => {
-          blink.pause();
-          typed.textContent = "HELLO CLIENT";
-        },
-        [],
-        0.8
-      );
-      tl.to(cursor, { opacity: 0, duration: 0.15 }, 0.8);
+      const typedThrough = FIRST + (stops.length - 1) * PER + GAP + 0.24;
+
+      // The caret's work is done, and the wordmark settles. Transform only:
+      // animating `filter` here meant repainting a gradient-clipped headline
+      // every frame, at the worst possible moment in the page's life.
+      tl.call(() => blink.pause(), [], typedThrough);
+      tl.to(cursor, { opacity: 0, duration: 0.22 }, typedThrough);
       tl.fromTo(
         wordmark,
-        { scale: 0.94, filter: "blur(6px) brightness(1)" },
-        { scale: 1, filter: "blur(0px) brightness(1.35)", duration: 0.4, ease: "power3.out" },
-        0.8
+        { scale: 0.965 },
+        { scale: 1, duration: 0.5, ease: "back.out(1.5)" },
+        typedThrough - 0.06
       );
-      tl.to(wordmark, { filter: "blur(0px) brightness(1)", duration: 0.35, ease: "power2.out" }, 1.25);
 
       // 1.3 — subtitle breathes in beneath the wordmark, and now gets a real
       // plateau (~0.7s) fully-formed before it dissolves — seven words need
@@ -488,23 +527,26 @@ export default function BootSequence({
     tlRef.current?.kill();
     onReveal();
 
-    // The handoff should read as travelling forward into the Network, not a hard
-    // cut to a new scene: the ambient glow blooms outward, the whole Hero pushes
-    // toward the viewer with a growing depth blur, and only then dissolves — one
-    // continuous move rather than two clips stitched together. This is the exit,
-    // the component unmounts right after (onExitComplete), so overriding the
-    // glow refs' infinite breathing tween here is safe — nothing resumes it after.
+    // The handoff should read as travelling forward into the Core, not a hard
+    // cut: the ambient glow blooms, the Hero pushes toward the viewer, then
+    // dissolves — one continuous move rather than two clips stitched together.
+    //
+    // Transform and opacity only, deliberately. This used to animate
+    // `filter: blur(22px)` across the entire full-screen Hero, which makes the
+    // browser re-rasterise the whole viewport through a large blur kernel on
+    // every frame for a second — and it ran at exactly the moment the Core is
+    // mounting its WebGL context and allocating the particle engine underneath.
+    // Two of the heaviest things the site can do, competing for the same frame.
+    // That was the stutter on "Explore Projects". The same applies to the glows:
+    // they carry a static 160–200px blur, so scaling them re-rasterises that
+    // blur too — they brighten now instead of growing.
+    //
+    // This is the exit and the component unmounts right after
+    // (onExitComplete), so overriding the glows' infinite breathing tween here
+    // is safe — nothing resumes it afterwards.
     const exit = gsap.timeline({ onComplete: onExitComplete });
-    exit.to(
-      [glowRef.current, glowFarRef.current],
-      { scale: "+=0.7", opacity: 0.95, duration: 1.05, ease: "power2.out" },
-      0
-    );
-    exit.to(
-      rootRef.current,
-      { scale: 1.09, filter: "blur(22px)", duration: 1.05, ease: "power2.inOut" },
-      0
-    );
+    exit.to([glowRef.current, glowFarRef.current], { opacity: 0.95, duration: 0.9, ease: "power2.out" }, 0);
+    exit.to(rootRef.current, { scale: 1.06, duration: 1.05, ease: "power2.inOut" }, 0);
     exit.to(rootRef.current, { opacity: 0, duration: 0.7, ease: "power2.inOut" }, 0.35);
   };
 
@@ -559,22 +601,46 @@ export default function BootSequence({
         className="pointer-events-none absolute inset-0 z-[5] bg-void opacity-0"
       />
 
-      <div className="relative z-10 flex flex-col items-center px-6 text-center">
+      <div className="relative z-10 flex w-full min-w-0 flex-col items-center px-6 text-center">
         <h1
           ref={wordmarkRef}
-          className="text-glossy min-h-[1.2em] whitespace-nowrap text-[clamp(2.3rem,9.5vw,3.6rem)] leading-none will-change-transform sm:text-[6.2vw]"
+          className="min-h-[1.2em] whitespace-nowrap text-[clamp(1.55rem,7.6vw,3.6rem)] leading-none will-change-transform sm:text-[6.2vw]"
         >
           <span className="sr-only">
             OrynthBuild — Hello Client, a white-label execution agency for AI, web &amp; full-stack
             development
           </span>
-          <span ref={typedRef} aria-hidden="true" />
-          <span
-            ref={cursorRef}
-            aria-hidden
-            className="ml-1 inline-block w-[0.06em] translate-y-[0.06em] bg-cyan align-baseline"
-            style={{ height: "0.8em" }}
-          />
+          {/* A real left-to-right typewriter, made cheap.
+
+              The whole wordmark is one text node, laid out once, and the
+              reveal is a clip-path walking across it a character at a time
+              with the caret riding the same edge. It looks exactly like the
+              text being written out, because visually that is what it is.
+
+              Two earlier attempts are worth recording so they aren't retried:
+
+              Rewriting textContent per keystroke — the original — forces a
+              re-layout AND a full re-rasterisation of a gradient clipped to
+              the text plus its stroke, twelve times, right on first
+              contentful paint. That was the glitch.
+
+              Fading in per-character spans does not work at all here: with
+              `background-clip: text` the glyphs are transparent and the
+              PARENT paints the gradient through their shape, so a child's
+              opacity never gets a say and the whole wordmark just appears.
+
+              Clipping the element that carries the gradient itself is the
+              one approach that both looks right and stays on the compositor. */}
+          <span aria-hidden="true" className="relative inline-block align-baseline">
+            <span
+              ref={textRef}
+              className="text-glossy block whitespace-nowrap"
+              style={{ clipPath: "inset(-0.15em 100% -0.15em -0.15em)" }}
+            >
+              HELLO CLIENT
+            </span>
+            <span ref={cursorRef} aria-hidden className="absolute left-0 top-0 w-[0.055em] bg-cyan" />
+          </span>
         </h1>
 
         <p
@@ -591,7 +657,6 @@ export default function BootSequence({
             You are already exploring one of our products.
           </p>
           <button
-            data-cursor="launch"
             onClick={finish}
             className="group relative flex items-center gap-3 rounded-full border border-glass-border px-8 py-4 font-mono text-xs uppercase tracking-[0.32em] text-ink edge-glow transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_0_24px_-8px_rgba(59,130,246,0.45)]"
           >
@@ -619,7 +684,6 @@ export default function BootSequence({
       <button
         ref={skipRef}
         type="button"
-        data-cursor="explore"
         aria-label="Skip introduction"
         onClick={finish}
         className="absolute z-20 font-mono text-[10px] uppercase tracking-[0.3em] text-ink-faint transition-opacity duration-300 hover:!opacity-100"

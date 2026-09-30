@@ -8,7 +8,6 @@ import WorldBackground from "./investment-world/WorldBackground";
 import Arrival from "./investment-world/Arrival";
 import StoryScreen from "./investment-world/StoryScreen";
 import ResourcesScreen from "./investment-world/ResourcesScreen";
-import { isMobileViewport } from "./investment-world/motion";
 import { logisticsOperationsHubTheme, logisticsOperationsHubContent } from "./investment-world/configs/logisticsOperationsHub";
 
 // ---------------------------------------------------------------------------
@@ -40,8 +39,10 @@ export default function LogisticsOperationsHub() {
       onComplete: () => router.push("/"),
     });
     exit.to(rootRef.current, {
+      // Transform and opacity only — animating a blur across the whole
+      // viewport re-rasterises every pixel of it on every frame, and this
+      // runs while the next route is already being prepared.
       scale: 0.92,
-      ...(isMobileViewport() ? {} : { filter: "blur(20px)" }),
       duration: 0.9,
       ease: "power2.inOut",
     });

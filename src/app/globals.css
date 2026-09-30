@@ -47,17 +47,19 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
-  cursor: none;
   /* Prevents the iOS/Android rubber-band bounce from revealing whatever is
      behind the canvas at the top/bottom of a scroll gesture. Horizontal is
      already covered by overflow-x: hidden above. */
   overscroll-behavior-y: none;
 }
 
-@media (pointer: coarse) {
-  body {
-    cursor: auto;
-  }
+/* The site uses the operating system's own cursor. Buttons get the pointer
+   the way every other site does — links already do via the UA stylesheet. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+summary,
+label[for] {
+  cursor: pointer;
 }
 
 /* Mobile Safari/Chrome give every tap on a link or button a gray highlight
@@ -124,6 +126,39 @@ button {
   }
 }
 
+/* Modal enter/exit — what framer-motion was costing 41 KB to provide. Only
+   opacity and transform, so both run on the compositor. */
+@keyframes overlay-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes overlay-scrim-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes overlay-panel-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes overlay-panel-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+
+.overlay-scrim-in { animation: overlay-scrim-in 0.28s ease-out both; }
+.overlay-scrim-out { animation: overlay-scrim-out 0.24s ease-in both; }
+.overlay-panel-in { animation: overlay-panel-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.overlay-panel-out { animation: overlay-panel-out 0.24s cubic-bezier(0.4, 0, 1, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-scrim-in,
+  .overlay-scrim-out,
+  .overlay-panel-in,
+  .overlay-panel-out {
+    animation-duration: 0.01ms;
+  }
+}
+
 .glass-panel {
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.015));
   border: 1px solid var(--color-glass-border);
@@ -167,25 +202,80 @@ button {
       #b3c8ff 72%,
       #ffffff 88%,
       #8fb4ff 100%);
-  background-size: 250% 100%;
+  /* The gradient spans the wordmark once and holds still.
+
+     It used to be 250% wide and swept back and forth forever, which read as
+     light travelling through the letters, and it sat under two drop-shadows
+     that threw a wide halo around them. Together they were the 'rays' — and
+     they were also a continuous repaint of the largest text on the page,
+     running from first paint onwards on every device. The gradient and the
+     stroke alone carry the same material without either cost. */
+  background-size: 100% 100%;
   background-position: 0% 50%;
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 26px rgba(82, 242, 255, 0.4)) drop-shadow(0 0 60px rgba(59, 130, 246, 0.25));
-  animation: glossy-sheen 6s ease-in-out infinite;
 }
 
-@keyframes glossy-sheen {
+/* ---------------------------------------------------------------------------
+   The project hero, and the one rule that decides whether a phone ever sees it.
 
-  0%,
-  100% {
-    background-position: 0% 50%;
+   Chromium considers an element for Largest Contentful Paint only at its FIRST
+   paint. The desktop entrance fades the title up from nothing, so its first
+   paint is at opacity 0 — and that disqualifies it permanently, however bright
+   it becomes a second later. Measured on a throttled phone the consequence was
+   stark: the reported LCP element was a 10px decorative readout, because the
+   326x142 headline was never a candidate at all, and the hero genuinely was not
+   on screen until roughly three seconds in.
+
+   So the fade is desktop-only, and gated here rather than in JavaScript: the
+   markup is statically prerendered and identical for every device, so only a
+   media query can make the served HTML paint the title on a phone and hide it
+   on a desktop. Arrival.tsx reads the same 767px boundary via
+   isMobileViewport() and animates transform alone on mobile, so the title
+   never passes back through transparency.
+
+   To undo all of this: delete this block and restore the single
+   `opacity: 0` on the <h1> in Arrival.tsx, then collapse its mobile/desktop
+   branch back to one tween.
+   --------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .hero-title {
+    opacity: 0;
+  }
+}
+
+/* The phone's settle is CSS, not GSAP, and that is the whole point.
+
+   A tween cannot start until hydration, and gsap.fromTo() applies its "from"
+   value the moment the timeline is built — so the title would paint at rest,
+   then visibly drop 14px once the JavaScript arrived, then slide back. On a
+   slow phone that hop lands a second after the text is already being read.
+
+   A keyframe is resolved with the first style pass instead: the title is
+   already on its way up in the frame it first appears in, with nothing to
+   wait for and nothing to jump. Transform only, so it never touches opacity
+   and stays eligible as the LCP element. */
+@media (max-width: 767px) {
+  .hero-title {
+    animation: hero-settle 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   }
 
-  50% {
-    background-position: 100% 50%;
+  @media (prefers-reduced-motion: reduce) {
+    .hero-title {
+      animation: none;
+    }
+  }
+}
+
+@keyframes hero-settle {
+  from {
+    transform: translateY(14px);
+  }
+
+  to {
+    transform: none;
   }
 }
 
@@ -523,6 +613,24 @@ button {
   animation: iw-scan-line 24s ease-in-out infinite;
 }
 
+/* Heading needle — sweeps its scale and settles back, never spinning. A
+   heading indicator moves like this: deliberate, and always coming to rest. */
+@keyframes iw-heading-needle {
+  0%,
+  100% {
+    transform: rotate(-38deg);
+  }
+
+  50% {
+    transform: rotate(46deg);
+  }
+}
+
+.iw-heading-needle {
+  animation: iw-heading-needle 26s ease-in-out infinite;
+  transform-box: fill-box;
+}
+
 @keyframes iw-numeric-pulse {
 
   0%,
@@ -607,7 +715,10 @@ button {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  backdrop-filter: blur(10px);
+  /* No backdrop-filter here on purpose. A flow diagram renders ten of these,
+     each one its own backdrop region resampling the world's continuously
+     animating background every frame — and at this size, over a near-black
+     ground, a 10px blur was invisible anyway. */
 }
 
 .iw-node-dot {
@@ -680,6 +791,7 @@ html[data-overlay-open] .iw-data-pulse-ring,
 html[data-overlay-open] .iw-page-drift,
 html[data-overlay-open] .iw-cell-fade,
 html[data-overlay-open] .iw-ocr-particle,
+html[data-overlay-open] .iw-heading-needle,
 html[data-overlay-open] .iw-scan-line,
 html[data-overlay-open] .animate-pulse-soft,
 html[data-overlay-open] .animate-drift,
@@ -705,6 +817,7 @@ html[data-overlay-open] .animate-fog {
   .iw-page-drift,
   .iw-cell-fade,
   .iw-ocr-particle,
+  .iw-heading-needle,
   .iw-scan-line,
   .animate-pulse-soft,
   .animate-drift,
@@ -730,6 +843,7 @@ html[data-overlay-open] .animate-fog {
   .iw-page-drift,
   .iw-cell-fade,
   .iw-ocr-particle,
+  .iw-heading-needle,
   .iw-scan-line,
   .animate-pulse-soft,
   .animate-drift,
@@ -738,4 +852,49 @@ html[data-overlay-open] .animate-fog {
   .animate-fog {
     animation: none !important;
   }
+}
+/* ---------------------------------------------------------------------------
+   Mobile compositing budget.
+
+   The animation reductions above stop things MOVING on a phone. These stop
+   the remaining static effects from being expensive to COMPOSITE, which is
+   the other half of the problem and the one that made project pages feel
+   heavy even once their animations were paused.
+
+   Three things dominate that cost:
+
+   1. backdrop-filter. Every element carrying one is a region the GPU has to
+      resample from whatever sits behind it — and behind these sits the
+      world's full-screen background. Ten of them on one story screen is ten
+      resamples per frame. On a dark ground the blur reads as almost nothing,
+      so a flat translucent surface is a fair trade for the frame budget.
+
+   2. mix-blend-mode on the full-screen grain. A blend layer forces the whole
+      stacking context beneath it to be composited together; animating it
+      forces that every 1.4 seconds, for the entire session, on every page.
+
+   3. will-change left on elements whose animation is already disabled here.
+      It promotes them to their own compositor layer and then never uses it —
+      pure memory and composite cost for no motion.
+   --------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .glass-panel,
+  .iw-glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(13, 17, 26, 0.92);
+  }
+
+  .noise-layer {
+    mix-blend-mode: normal;
+    opacity: 0.02;
+    animation: none;
+  }
+
+  .animate-radial-shift,
+  .animate-beam,
+  .animate-fog {
+    will-change: auto;
+  }
+
 }

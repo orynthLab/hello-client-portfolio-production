@@ -47,27 +47,36 @@ export default function Arrival({
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.set([titleRef.current, ruleRef.current, sub1Ref.current, sub2Ref.current, cueRef.current], {
-        opacity: 0,
-      });
+      const mobile = isMobileViewport();
+
+      // On a phone the title is already painted (see .hero-title in
+      // globals.css) and must not be hidden again here — that would put it
+      // back through the transparent first paint the CSS exists to avoid.
+      gsap.set([ruleRef.current, sub1Ref.current, sub2Ref.current, cueRef.current], { opacity: 0 });
+      if (!mobile) gsap.set(titleRef.current, { opacity: 0 });
       gsap.set(ruleRef.current, { scaleX: 0, transformOrigin: "center center" });
 
       const tl = gsap.timeline({ defaults: { ease: "sine.out" } });
 
       // The room is already waking (WorldBackground handles that on mount).
-      // Title arrives once the atmosphere has had time to settle — a beat of
-      // pure stillness first, so the title reads as arriving into a place,
-      // not popping onto a loading screen.
-      // filter:blur() is the most expensive part of this reveal to interpolate
-      // and lands at the exact moment a project opens — skipped on mobile,
-      // where opacity/y alone still read as the same arrival.
-      const skipBlur = isMobileViewport();
-      tl.fromTo(
-        titleRef.current,
-        { opacity: 0, y: 10, ...(skipBlur ? {} : { filter: "blur(5px)" }) },
-        { opacity: 1, y: 0, ...(skipBlur ? {} : { filter: "blur(0px)" }), duration: 1.6, ease: "power2.out" },
-        1.4
-      );
+      //
+      // Nothing here touches the title on a phone. It is painted with the
+      // document and settles via the hero-settle keyframe in globals.css,
+      // which needs no hydration and cannot hop once hydration lands.
+      if (!mobile) {
+        // Desktop is unchanged. The title arrives once the atmosphere has had
+        // time to settle — a beat of pure stillness first, so it reads as
+        // arriving into a place, not popping onto a loading screen.
+        // filter:blur() is the most expensive part of this reveal to
+        // interpolate and lands at the exact moment a project opens, which is
+        // why it was always desktop-only.
+        tl.fromTo(
+          titleRef.current,
+          { opacity: 0, y: 10, filter: "blur(5px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.6, ease: "power2.out" },
+          1.4
+        );
+      }
 
       tl.to(ruleRef.current, { opacity: 1, duration: 0.5 }, 3.4);
       tl.to(ruleRef.current, { scaleX: 1, duration: 1.0, ease: "power2.inOut" }, 3.4);
@@ -125,6 +134,7 @@ export default function Arrival({
       <div ref={stageRef} className="flex flex-col items-center" style={{ willChange: "transform" }}>
         <h1
           ref={titleRef}
+          className="hero-title"
           style={{
             fontFamily: "var(--font-geist-sans), Arial, sans-serif",
             fontSize: "clamp(2.8rem, 6.8vw, 5.8rem)",
@@ -132,7 +142,6 @@ export default function Arrival({
             letterSpacing: "-0.04em",
             lineHeight: 1.06,
             color: "#eef1f9",
-            opacity: 0,
             willChange: "transform, opacity, filter",
           }}
         >

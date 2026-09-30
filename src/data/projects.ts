@@ -6,7 +6,19 @@ export type WorkflowNode = {
 
 export type Project = {
   slug: string;
+  /** Position in the portfolio, 1-based. This — not the array below — is the
+   *  authoritative order: the Core sorts by it, and it is the number shown
+   *  beside a project. Reordering the portfolio means changing these numbers,
+   *  never moving code. */
+  order: number;
   name: string;
+  /** Short label for the Core's particle cluster, where the full name is too
+   *  long to sit under a node. Optional — the Core derives one when absent. */
+  shortTitle?: string;
+  /** One verb naming what this system does — GROW, VERIFY, CONNECT. Rendered
+   *  under the cluster in the Core and on its hover card; it is the fastest
+   *  read of what a project is before the visitor commits to opening it. */
+  verb: string;
   tagline: string;
   category: string;
   accent: string;
@@ -21,7 +33,13 @@ export type Project = {
  * portfolio's own closing chapter (Project 05, "Creative Engineering
  * Portfolio"), reached the same way every other system is. */
 export type MetaSystem = {
+  /** see Project.order */
+  order: number;
   name: string;
+  /** see Project.shortTitle */
+  shortTitle?: string;
+  /** see Project.verb */
+  verb: string;
   tagline: string;
   hoverText: string;
   accent: string;
@@ -31,7 +49,10 @@ export type MetaSystem = {
 };
 
 export const metaSystem: MetaSystem = {
+  order: 8,
   name: "Creative Engineering Portfolio",
+  shortTitle: "Creative Engineering",
+  verb: "CREATE",
   tagline: "The system you're standing inside right now.",
   hoverText: "The mind behind every system here.",
   accent: "#9fb3c8",
@@ -40,8 +61,50 @@ export const metaSystem: MetaSystem = {
 
 export const projects: Project[] = [
   {
+    // Project 04. Every fact below is verified against the source repository
+    // — its README, its package.json and its actual file tree. No invented
+    // metrics, and the Aspeq/CAANZ disclaimer is carried through rather than
+    // quietly dropped.
+    //
+    // The portfolio presents the system, not the client's company name, so
+    // this is "Aviation Preparation Academy" everywhere. The client's own
+    // brand appears nowhere on the page.
+    order: 1,
+    slug: "aviation-preparation-academy",
+    name: "Aviation Preparation Academy",
+    shortTitle: "Aviation Academy",
+    verb: "PREPARE",
+    tagline: "A full-stack aviation theory platform for New Zealand pilot exams — a marketing site, a student learning environment and an admin CMS in one Next.js application, with every decision about money and access computed on the server.",
+    category: "Aviation Learning & Assessment Platform",
+    accent: "#5b9fdc",
+    year: "2026",
+    stack: ["Next.js 16", "React 19", "TypeScript", "PostgreSQL 16", "Prisma 6", "Razorpay", "Resend", "Vitest", "Playwright"],
+    metrics: [
+      { label: "Theory subjects", value: "15" },
+      { label: "Unit tests", value: "329" },
+      { label: "Security checks", value: "30" },
+      { label: "Vulnerabilities at last audit", value: "0" },
+    ],
+    nodes: [
+      { key: "intro", label: "Introduction", body: "A full-stack aviation learning platform: a public marketing site, a student learning environment and an admin CMS, all in one Next.js application. Fifteen theory subjects across PPL, CPL and IR, plus flight-test groundwork." },
+      { key: "problem", label: "Problem", body: "A student pilot can have the material and still not know what actually matters, why a correct answer is correct, or how they will perform under exam timing. And the operator running the platform needs examinations, products, orders, coupons, guarantee claims, refunds and student access to be manageable without touching code." },
+      { key: "solution", label: "Our Solution", body: "One codebase serving three audiences. Prospective students get pricing transparency and a free 10-question mock exam. Active learners get syllabus-indexed study material, chapter-based practice, timed mock exams with realistic timing, automated Knowledge Deficiency Reports delivered as PDFs by email, and individual progress tracking. Administrators get a CMS covering examinations, products, orders, coupons, guarantee claims, refunds and student access." },
+      { key: "architecture", label: "Architecture", body: "Next.js 16 with the App Router and React Server Components over PostgreSQL 16 through Prisma 6. Sessions are signed JWTs via jose with bcryptjs password hashing; payments run through Razorpay with server-side signature verification; transactional email goes through Resend, and Knowledge Deficiency Reports are generated as PDFs with pdfkit. Input is validated with zod." },
+      { key: "security", label: "Security Model", body: "Everything that decides money or access — prices, discounts, entitlements, payment verification, guarantee eligibility — is computed server-side and never trusted from the browser. A dedicated security suite runs 30 checks covering access control, IDOR, authentication integrity, payment tampering and XSS. The last audit recorded zero vulnerabilities." },
+      { key: "testing", label: "Testing", body: "329 unit tests in Vitest, plus roughly 20 integration and end-to-end suites — Playwright alongside custom Node suites — totalling around 1,500 assertions across purchase flows, payments, guarantee workflows, accessibility and security scenarios." },
+      { key: "content", label: "Content Pipeline", body: "The syllabus is not hand-keyed. Dedicated tooling extracts, imports, maps, audits and reports on PPL, CPL and IR content, with coverage and visibility checks and a changelog — so fifteen subjects stay in sync with their source syllabi rather than drifting." },
+      { key: "stack", label: "Tech Stack", body: "Next.js 16 and React 19 on TypeScript in strict mode, PostgreSQL 16 via Prisma 6, jose and bcryptjs for auth, Razorpay for payments, Resend for email, pdfkit for report generation, zod for validation, and Vitest with Playwright for tests. A custom CSS design system carries light and dark themes — no UI framework." },
+      { key: "impact", label: "Business Impact", body: "A complete commercial platform rather than a course listing: a first-attempt pass guarantee with a claims workflow behind it, real payment and refund handling, and an operator who can run examinations, pricing, coupons and student access without a developer." },
+      { key: "compliance", label: "Compliance", body: "Built against the NZ Privacy Act and India's DPDP Act, with privacy, terms, refund and cookie policies in place. Not affiliated with, endorsed by, or acting on behalf of Aspeq or CAANZ." },
+      { key: "contact", label: "Contact", body: "If you're building a learning product where the real question is \"is this person ready?\" — and where money and access have to be correct every time — that is the part worth engineering carefully." },
+    ],
+  },
+  {
+    order: 4,
     slug: "autonomous-business-development-agent",
     name: "Autonomous Business Development Agent",
+    shortTitle: "Business Development",
+    verb: "GROW",
     tagline: "An AI employee that discovers companies, researches them, writes personalized outreach, and manages the entire pipeline in a Google Sheet CRM — with a human approval gate in front of every send.",
     category: "Autonomous Business Development",
     accent: "#ff8a5c",
@@ -71,8 +134,46 @@ export const projects: Project[] = [
     ],
   },
   {
+    // Project 02. Everything below is drawn from the project's own brief and
+    // repository — deliberately no invented volumes, users or money moved:
+    // Africa One is a clickable, stateful prototype, and the copy says so.
+    order: 5,
+    slug: "cross-border-transfer-engine",
+    name: "Cross-Border Transfer Engine",
+    shortTitle: "Cross-Border Transfer",
+    verb: "MOVE",
+    tagline: "A multi-currency wallet and cross-border financial platform built for 54 African markets — modelling the corridors, currencies, compliance and settlement behind every transfer.",
+    category: "Cross-Border Financial Platform",
+    accent: "#2fd8b0",
+    year: "2026",
+    stack: ["HTML", "CSS", "JavaScript", "Modular Screen Architecture", "SVG Charts", "Hash Routing", "Python Build Utilities"],
+    metrics: [
+      { label: "Countries modelled", value: "54" },
+      { label: "Phase-1 corridors", value: "13" },
+      { label: "Screens / flows", value: "27+" },
+      { label: "Verification checks", value: "132" },
+    ],
+    nodes: [
+      { key: "intro", label: "Introduction", body: "A multi-currency wallet and cross-border financial platform built for 54 African markets — a clickable, stateful prototype covering both the customer app and the operational console behind it." },
+      { key: "problem", label: "Problem", body: "A cross-border financial product cannot just be a wallet UI. Behind every transfer sit multiple currencies, exchange rates, payment corridors, KYC, risk controls, provider routing, settlement, reconciliation and auditability — and that system is the actual engineering problem." },
+      { key: "solution", label: "Our Solution", body: "Model the complete financial ecosystem, both halves of it: a customer app with a multi-currency wallet, local and USD/EUR/GBP/CNY accounts, add money, withdraw, send, receive, exchange and cross-border transfer; and an operational console with customer operations, KYC review, AML and fraud, reconciliation, countries, fees and limits, and an audit trail." },
+      { key: "architecture", label: "Architecture", body: "Customer → Wallet → Currency/FX → Transfer Engine → Provider Routing → Risk/KYC → Ledger → Reconciliation → Operations → Audit. Every stage is modelled as its own surface with its own state, so the prototype demonstrates the whole path a transfer takes rather than only the screens a customer sees." },
+      { key: "flow", label: "Value Flow", body: "Country → Wallet → Currency → Exchange → Transfer → Verification → Provider → Settlement → Reconciliation → Complete." },
+      { key: "decisions", label: "Engineering Decisions", body: "A 54-country data model carrying flag, ISO code, local currency, symbol, dialing code, payment methods, payout partner and corridor status. A multi-currency ledger model. A deliberate separation between display currency and actual exchange. Provider abstraction, KYC state transitions, risk and review workflows, reconciliation, and an append-only audit trail." },
+      { key: "display", label: "Display Currency", body: "Switching display currency is a viewing change, not a financial transaction — the prototype models that distinction explicitly. Actual conversion only happens in the Exchange flow, where it belongs." },
+      { key: "stack", label: "Tech Stack", body: "A deliberately lightweight standalone prototype: HTML, CSS and JavaScript with a modular screen architecture, custom DOM/component-style functions, SVG-based charts, hash routing, local/mock state, and Python build and test utilities. No framework, no bundler." },
+      { key: "impact", label: "Business Impact", body: "54 countries modelled, 13 Phase-1 corridors, 27+ screens and flows, and 132 verification checks — prototype figures, verified against the project itself rather than projected." },
+      { key: "honesty", label: "What This Is", body: "A demonstration prototype. External financial systems are simulated: no real money moves, and there is no live banking, payment processing, KYC, sanctions screening, AML or settlement behind it. Country visibility is deliberately distinguished from live corridor connectivity." },
+      { key: "future", label: "Future Scope", body: "Real payment gateway integrations, live banking and settlement rails, production identity and KYC providers, actual AML and sanctions integrations, real provider connectivity, and a React + TypeScript production implementation on a real API backend." },
+      { key: "contact", label: "Contact", body: "If you're building cross-border financial infrastructure and want the system behind the wallet designed properly, let's talk." },
+    ],
+  },
+  {
+    order: 2,
     slug: "company-financial-report-agent",
     name: "Financial Intelligence Workspace",
+    shortTitle: "Financial Intelligence",
+    verb: "UNDERSTAND",
     tagline: "An agent that reads a company's full financial disclosures and turns them into a structured, cited brief an analyst can trust in minutes, not days.",
     category: "Financial Intelligence",
     accent: "#9b6bff",
@@ -102,8 +203,11 @@ export const projects: Project[] = [
     ],
   },
   {
+    order: 3,
     slug: "investment-advisory-agent",
     name: "Investment Intelligence Engine",
+    shortTitle: "Investment Engine",
+    verb: "THINK",
     tagline: "An AI advisor that reasons through portfolio risk and market conditions the way a senior analyst would, and explains every recommendation in plain language.",
     category: "Investment Advisory Agent",
     accent: "#f3d38a",
@@ -133,8 +237,11 @@ export const projects: Project[] = [
     ],
   },
   {
+    order: 6,
     slug: "document-identifier-verifier",
     name: "Document Trust Engine",
+    shortTitle: "Document Trust",
+    verb: "VERIFY",
     tagline: "A vision system that identifies, reads, and verifies identity documents in seconds, catching forgeries a human reviewer would miss on a tired Tuesday.",
     category: "Document Intelligence",
     accent: "#52f2ff",
@@ -164,8 +271,11 @@ export const projects: Project[] = [
     ],
   },
   {
+    order: 7,
     slug: "igc-logistics-platform",
     name: "Logistics Operations Hub",
+    shortTitle: "Logistics Hub",
+    verb: "CONNECT",
     tagline: "A live routing and fleet platform that replans a delivery network in real time instead of re-running the plan once a day.",
     category: "Logistics Intelligence Platform",
     accent: "#4ee6a8",

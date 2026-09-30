@@ -26,7 +26,7 @@ export function FlowNode({
   big?: boolean;
 }) {
   return (
-    <div className="relative flex flex-col items-center" data-cursor="explore">
+    <div className="relative flex flex-col items-center">
       <span
         className="absolute left-1/2 top-0 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl"
         style={{ backgroundColor: accent, opacity: big ? 0.4 : 0.18 }}

@@ -52,8 +52,19 @@ export type WorldTheme = {
    *  cards, bounding boxes, confidence badges, security watermark; routes = freight
    *  nodes, GPS pulses, traveling shipment dots along gentle route arcs; network =
    *  discovered-company nodes, a knowledge-graph mesh between them, CRM card
-   *  outlines, and traveling outreach pulses along conversation threads */
-  motif: "curves" | "documents" | "verification" | "routes" | "network";
+   *  outlines, and traveling outreach pulses along conversation threads;
+   *  corridors = market nodes of varying weight, cross-border corridor arcs between
+   *  them, value travelling those arcs, and quiet FX/settlement tickers */
+  motif:
+    | "curves"
+    | "documents"
+    | "verification"
+    | "routes"
+    | "network"
+    | "corridors"
+    /** waypoints on gentle flight paths, heading and altitude reference marks,
+     *  instrument arc scales, and readiness ticks — quiet flight-training precision */
+    | "instruments";
 };
 
 /** a single direct resource link — Resume, GitHub, LinkedIn, Email, Schedule a
@@ -69,7 +80,10 @@ export type WorldContent = {
   videoSrc?: string;
   beats: StoryBeat[];
   readme: ReadmeContent;
-  repository: { title: string; description: ReactNode; requestLabel: string };
+  /** `href` turns the repository card's action into a real outbound link — for a
+   *  project whose source is public. Without it the card keeps its default
+   *  behavior, a "request access" contact prompt, as every private project uses. */
+  repository: { title: string; description: ReactNode; requestLabel: string; href?: string };
   techStack: TechStackGroup[];
   cta: { heading: string; body: string; buttonLabel: string };
 };

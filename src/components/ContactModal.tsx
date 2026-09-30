@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useRef, useState } from "react";
 import GlassPanel from "@/components/GlassPanel";
-import { pauseWorldForOverlay, resumeWorldForOverlay } from "@/components/investment-world/motion";
-import { useModalA11y } from "@/components/useModalA11y";
+import Overlay from "@/components/Overlay";
 
 // Submits to Web3Forms — no backend, no server code on our side. Unlike a
 // direct-to-Google-Forms POST, this endpoint actually supports CORS and
@@ -35,12 +33,17 @@ export default function ContactModal({
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const sendingRef = useRef(false);
   const close = () => setOpen(false);
-  useModalA11y(open, close, panelRef);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Pressing Enter in a field submits the form even while the button is
+    // disabled, so the in-flight guard has to live here rather than only on
+    // the button — otherwise one impatient visitor sends four identical leads.
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+
     const data = new FormData(e.currentTarget);
     data.append("access_key", WEB3FORMS_ACCESS_KEY);
     data.append("subject", "New inquiry from the Hello Client portfolio");
@@ -63,22 +66,13 @@ export default function ContactModal({
       setError("Something went wrong — please try again or email us directly.");
     } finally {
       setSending(false);
+      sendingRef.current = false;
     }
   };
-
-  // Nothing behind this overlay is visible while it's open — pause the whole
-  // world's continuous animation so it isn't competing with the modal's own
-  // form for the main thread (same pattern as ReadmeModal/VideoLightbox).
-  useEffect(() => {
-    if (!open) return;
-    pauseWorldForOverlay();
-    return () => resumeWorldForOverlay();
-  }, [open]);
 
   return (
     <div className={className}>
       <button
-        data-cursor="connect"
         onClick={() => setOpen(true)}
         className={buttonClassName}
       >
@@ -91,38 +85,9 @@ export default function ContactModal({
         {label}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-[90] flex items-center justify-center px-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {/* solid, no backdrop-blur: now that this overlay pauses the world's
-               continuous animation (above), there's nothing live left behind it
-               to blur — same reasoning as ReadmeModal's scrim. */}
-            <motion.div
-              className="absolute inset-0 bg-void/80"
-              onClick={close}
-            />
-
-            <motion.div
-              ref={panelRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Contact"
-              tabIndex={-1}
-              initial={{ opacity: 0, y: 20, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-full max-w-md"
-            >
+      <Overlay open={open} onClose={close} ariaLabel="Contact" panelClassName="w-full max-w-md">
               <GlassPanel className="p-5 sm:p-6">
                 <button
-                  data-cursor="explore"
                   onClick={close}
                   className="absolute right-4 top-4 text-ink-faint transition-colors hover:text-ink"
                 >
@@ -139,19 +104,33 @@ export default function ContactModal({
                 </h2>
 
                 {sent ? (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                  <p
                     className="mt-4 text-sm text-ai-green"
                   >
                     Received. We&apos;ll be in touch shortly.
-                  </motion.p>
+                  </p>
                 ) : (
                   <form className="mt-4 flex flex-col gap-2" onSubmit={handleSubmit}>
+                    {/* Honeypot. Web3Forms rejects any submission where this
+                        field is filled, and a bot filling every input is
+                        exactly how automated spam behaves. Hidden from people
+                        and from assistive tech, and never focusable, so no
+                        real visitor can trip it. This form's only real abuse
+                        risk is bot volume burning the submission quota. */}
+                    <input
+                      type="checkbox"
+                      name="botcheck"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      className="hidden"
+                    />
                     <input
                       name="name"
                       required
                       type="text"
+                      maxLength={100}
+                      autoComplete="name"
                       placeholder="Name"
                       className="rounded-xl border border-glass-border bg-white/[0.03] px-3.5 py-2 text-sm text-ink outline-none transition-colors focus:border-cyan/50"
                     />
@@ -159,6 +138,8 @@ export default function ContactModal({
                       name="email"
                       required
                       type="email"
+                      maxLength={254}
+                      autoComplete="email"
                       placeholder="Email"
                       className="rounded-xl border border-glass-border bg-white/[0.03] px-3.5 py-2 text-sm text-ink outline-none transition-colors focus:border-cyan/50"
                     />
@@ -166,6 +147,7 @@ export default function ContactModal({
                       name="message"
                       required
                       rows={2}
+                      maxLength={2000}
                       placeholder="What are you looking to build?"
                       className="resize-none rounded-xl border border-glass-border bg-white/[0.03] px-3.5 py-2 text-sm text-ink outline-none transition-colors focus:border-cyan/50"
                     />
@@ -173,7 +155,6 @@ export default function ContactModal({
                     <button
                       type="submit"
                       disabled={sending}
-                      data-cursor="connect"
                       className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-cyan/10 px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan edge-glow transition-transform duration-300 hover:scale-[1.03] disabled:opacity-60 disabled:hover:scale-100"
                     >
                       {sending ? "Sending" : "Send"}
@@ -188,10 +169,7 @@ export default function ContactModal({
                   contact@orynthbuild.site
                 </p>
               </GlassPanel>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </Overlay>
     </div>
   );
 }

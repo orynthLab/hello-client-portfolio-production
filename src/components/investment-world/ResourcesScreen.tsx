@@ -60,12 +60,12 @@ function EditorialResource({
       <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-ink-faint">
         {index} — {label}
       </p>
-      <h3
+      <h2
         className="mt-4 text-[1.75rem] font-light sm:text-3xl"
         style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif", letterSpacing: "-0.025em", color: "#eef1f9" }}
       >
         {title}
-      </h3>
+      </h2>
       <div className="mt-3 max-w-xs text-sm leading-relaxed text-ink-dim">{description}</div>
       <div className="mt-6">{action}</div>
     </div>
@@ -98,8 +98,27 @@ type ResourcesScreenProps = {
   cta: { heading: string; body: string; buttonLabel: string };
 } & (
   | { links: ResourceLink[]; readme?: undefined; repository?: undefined }
-  | { links?: undefined; readme: ReadmeContent; repository: { title: string; description: React.ReactNode; requestLabel: string } }
+  | {
+      links?: undefined;
+      readme: ReadmeContent;
+      repository: { title: string; description: React.ReactNode; requestLabel: string; href?: string };
+    }
 );
+
+/** The same mono action treatment the contact prompt uses, so a public
+ *  repository link and a "request access" prompt read as one system. */
+function ExternalAction({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-dim transition-colors hover:text-cyan"
+    >
+      {label}
+    </a>
+  );
+}
 
 export default function ResourcesScreen(props: ResourcesScreenProps) {
   const { onReturn, techStack, cta } = props;
@@ -143,11 +162,15 @@ export default function ResourcesScreen(props: ResourcesScreenProps) {
             title={props.repository.title}
             description={props.repository.description}
             action={
-              <ContactModal
-                label={props.repository.requestLabel}
-                showIcon={false}
-                buttonClassName="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-dim transition-colors hover:text-cyan"
-              />
+              props.repository.href ? (
+                <ExternalAction href={props.repository.href} label={props.repository.requestLabel} />
+              ) : (
+                <ContactModal
+                  label={props.repository.requestLabel}
+                  showIcon={false}
+                  buttonClassName="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-dim transition-colors hover:text-cyan"
+                />
+              )
             }
             delay={0.15}
           />
@@ -188,7 +211,6 @@ export default function ResourcesScreen(props: ResourcesScreenProps) {
         <div className="mt-20 flex flex-col items-center gap-4 text-center">
           <button
             type="button"
-            data-cursor="launch"
             onClick={onReturn}
             className="group relative flex items-center gap-3 rounded-full border border-glass-border px-8 py-4 font-mono text-xs uppercase tracking-[0.32em] text-ink edge-glow transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02]"
           >

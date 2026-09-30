@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { pauseWorldForOverlay, resumeWorldForOverlay } from "./motion";
-import { useModalA11y } from "@/components/useModalA11y";
+import Overlay from "@/components/Overlay";
 
 // ---------------------------------------------------------------------------
 // The product walkthrough, expanded. Clicking play never navigates anywhere —
@@ -48,8 +46,6 @@ export default function VideoLightbox({
 }) {
   const [mounted, setMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  useModalA11y(open, onClose, panelRef);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -61,16 +57,16 @@ export default function VideoLightbox({
     setMounted(true);
   }, []);
 
+  // Overlay handles the world pause and the focus trap; this effect only owns
+  // the video element itself.
   useEffect(() => {
     if (!open) return;
-    pauseWorldForOverlay();
     const video = videoRef.current;
     video?.play().catch(() => {
       // Autoplay can still be refused in rare cases (e.g. reduced-data mode) —
       // the visible play button is the fallback, not a broken experience.
     });
     return () => {
-      resumeWorldForOverlay();
       video?.pause();
     };
   }, [open]);
@@ -122,35 +118,15 @@ export default function VideoLightbox({
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const overlay = (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          data-lenis-prevent
-          className="fixed inset-0 z-[96] flex items-center justify-center p-4 sm:p-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* solid dim, no backdrop-blur — see ReadmeModal for why: the world
-             is paused behind this anyway, so there's nothing live to blur */}
-          <motion.div className="absolute inset-0 bg-void/92" onClick={onClose} />
-
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Video walkthrough"
-            tabIndex={-1}
-            initial={{ opacity: 0, y: 16, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.94 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="edge-glow relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-glass-border bg-black"
-          >
+    <Overlay
+      open={open}
+      onClose={onClose}
+      ariaLabel="Video walkthrough"
+      scrimClassName="bg-void/92"
+      panelClassName="edge-glow w-full max-w-5xl overflow-hidden rounded-2xl border border-glass-border bg-black"
+    >
             <button
               type="button"
-              data-cursor="explore"
               onClick={onClose}
               aria-label="Close video"
               className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/40 text-ink-dim transition-colors hover:text-ink"
@@ -160,7 +136,7 @@ export default function VideoLightbox({
               </svg>
             </button>
 
-            <div className="relative aspect-video w-full" onClick={togglePlay} data-cursor="explore">
+            <div className="relative aspect-video w-full" onClick={togglePlay}>
               <video
                 ref={videoRef}
                 src={src}
@@ -196,20 +172,19 @@ export default function VideoLightbox({
                 }}
                 onPointerDown={() => setSeeking(true)}
                 onPointerUp={() => setSeeking(false)}
-                data-cursor="explore"
                 className="iw-scrubber"
                 style={{ background: `linear-gradient(to right, #52f2ff ${progress}%, rgba(255,255,255,0.18) ${progress}%)` }}
                 aria-label="Seek"
               />
 
               <div className="flex items-center gap-3">
-                <button type="button" data-cursor="explore" onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"} className="text-ink transition-colors hover:text-cyan">
+                <button type="button" onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"} className="text-ink transition-colors hover:text-cyan">
                   {isPlaying ? <PauseIcon /> : <PlayIcon />}
                 </button>
-                <button type="button" data-cursor="explore" onClick={() => skip(-10)} aria-label="Back 10 seconds" className="text-ink-dim transition-colors hover:text-cyan">
+                <button type="button" onClick={() => skip(-10)} aria-label="Back 10 seconds" className="text-ink-dim transition-colors hover:text-cyan">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 5L5 12l6 7M5 12h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
-                <button type="button" data-cursor="explore" onClick={() => skip(10)} aria-label="Forward 10 seconds" className="text-ink-dim transition-colors hover:text-cyan">
+                <button type="button" onClick={() => skip(10)} aria-label="Forward 10 seconds" className="text-ink-dim transition-colors hover:text-cyan">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 5l6 7-6 7M19 12H5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
 
@@ -218,23 +193,20 @@ export default function VideoLightbox({
                 </span>
 
                 <div className="ml-auto flex items-center gap-3">
-                  <button type="button" data-cursor="explore" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"} className="text-ink-dim transition-colors hover:text-cyan">
+                  <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"} className="text-ink-dim transition-colors hover:text-cyan">
                     {muted ? (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                     ) : (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M16 8.5a4 4 0 0 1 0 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                     )}
                   </button>
-                  <button type="button" data-cursor="explore" onClick={toggleFullscreen} aria-label="Fullscreen" className="text-ink-dim transition-colors hover:text-cyan">
+                  <button type="button" onClick={toggleFullscreen} aria-label="Fullscreen" className="text-ink-dim transition-colors hover:text-cyan">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </button>
                 </div>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Overlay>
   );
 
   if (!mounted) return null;

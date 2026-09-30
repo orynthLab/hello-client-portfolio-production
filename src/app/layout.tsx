@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Michroma } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import "./globals.css";
-import CustomCursor from "@/components/CustomCursor";
 import SmoothScroll from "@/components/SmoothScroll";
+import { jsonLd } from "@/lib/jsonLd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,47 +26,14 @@ const SITE_URL = "https://www.orynthbuild.site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "OrynthBuild — AI, ML, Web & App Development, Tech Partner",
+    default: "OrynthBuild | AI, Machine Learning, Web & App Development",
     template: "%s | OrynthBuild",
   },
   description:
-    "OrynthBuild builds AI agents, machine learning tools, websites, UI/UX, and apps for founders, startups, and businesses in any industry, worldwide — as a direct build, or white-label under an agency's brand. Hello Client is one of our own products.",
-  keywords: [
-    "custom software development company",
-    "software development for businesses",
-    "business website development",
-    "custom web application development",
-    "digital product development company",
-    "machine learning development company",
-    "ML development agency",
-    "UI UX design agency",
-    "UI UX design company",
-    "app development company",
-    "white label execution agency",
-    "white label development agency",
-    "white label tech partner",
-    "white label software development",
-    "tech execution partner",
-    "outsource web development",
-    "outsource software development",
-    "outsource app development",
-    "full stack development agency",
-    "full stack development company India",
-    "AI agent development agency",
-    "AI agent development company",
-    "MVP development agency",
-    "MVP development company India",
-    "startup MVP development",
-    "workflow automation agency",
-    "business automation company",
-    "app development agency",
-    "web development agency India",
-    "web development company India",
-    "product engineering partner",
-    "AI product studio",
-    "OrynthBuild",
-    "Hello Client",
-  ],
+    "OrynthBuild builds AI and machine learning solutions, workflow automation, MVPs, websites and apps for founders and businesses, with white-label engineering for agencies.",
+  // No `keywords` meta: search engines have ignored it for years, and the
+  // production SEO pass removed it deliberately. Keyword intent lives in the
+  // page copy and the per-service content instead.
   applicationName: "OrynthBuild",
   authors: [{ name: "OrynthBuild" }],
   creator: "OrynthBuild",
@@ -78,15 +45,15 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "OrynthBuild",
-    title: "OrynthBuild — AI, ML, Web & App Development, Tech Partner",
+    title: "OrynthBuild | AI, Machine Learning, Web & App Development",
     description:
-      "AI agents, machine learning tools, websites, UI/UX, and apps for founders and businesses worldwide — direct, or white-label under your agency's brand.",
+      "AI and machine learning solutions, workflow automation, MVPs, websites and apps for founders and businesses, with white-label engineering for agencies.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OrynthBuild — AI, ML, Web & App Development, Tech Partner",
+    title: "OrynthBuild | AI, Machine Learning, Web & App Development",
     description:
-      "AI agents, machine learning tools, websites, UI/UX, and apps for founders and businesses worldwide — direct, or white-label under your agency's brand.",
+      "AI and machine learning solutions, workflow automation, MVPs, websites and apps for founders and businesses, with white-label engineering for agencies.",
   },
   robots: {
     index: true,
@@ -101,9 +68,26 @@ export const metadata: Metadata = {
   },
 };
 
+// Structured data, as rewritten by the production SEO pass.
+//
+// The Organization carries a stable @id so every other schema on the site —
+// Service, CreativeWork, WebSite — can point at this one entity instead of
+// each re-describing the company.
+//
+// What used to live here and deliberately no longer does: hasOfferCatalog,
+// knowsAbout, areaServed and slogan, all of which restated in schema what the
+// service pages now say in real content; and an FAQPage listing five
+// questions that appear nowhere on the homepage. Google requires FAQ markup
+// to match visible page content, so that one was a liability rather than an
+// asset. The FAQ schema now sits on the service pages, next to FAQs a
+// visitor can actually read.
+//
+// sameAs is kept: those profile links are the only thing here that ties this
+// entity to its presence elsewhere, and nothing in the SEO pass replaced them.
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
   name: "OrynthBuild",
   url: SITE_URL,
   email: "contact@orynthbuild.site",
@@ -115,137 +99,17 @@ const organizationJsonLd = {
     "https://www.facebook.com/profile.php?id=61592485095565",
   ],
   description:
-    "OrynthBuild builds AI agents, machine learning tools, websites, UI/UX, and apps for businesses in any industry worldwide, as a direct build or white-label under an agency's brand.",
-  slogan: "We build what you need to ship — for your business, or under your brand.",
-  areaServed: ["Worldwide", "India"],
-  knowsAbout: [
-    "AI Agent Development",
-    "Machine Learning Development",
-    "MVP Development",
-    "Workflow Automation",
-    "Full-Stack Web Development",
-    "UI/UX Design",
-    "App Development",
-    "White-Label Software Development",
-  ],
-  hasOfferCatalog: {
-    "@type": "OfferCatalog",
-    name: "OrynthBuild Services",
-    itemListElement: [
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "AI Agent Development",
-          description: "Design and engineering of production AI agents for founders and agencies.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Machine Learning Development",
-          description: "ML tools and models built into real products, not standalone notebooks.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "MVP Development",
-          description: "Fast, full-stack MVP builds for startups and founders taking an idea to launch.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Workflow & Business Automation",
-          description: "Automation systems that remove manual, repetitive work from client operations.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Full-Stack Web & App Development",
-          description: "End-to-end web and app development, from product design through deployment.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "UI/UX Design",
-          description: "Interface and experience design for websites, apps, and products.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "White-Label Execution",
-          description: "Outsourced product and engineering execution delivered under a client's own brand.",
-          areaServed: ["Worldwide", "India"],
-        },
-      },
-    ],
-  },
+    "OrynthBuild builds AI and machine learning solutions, workflow automation, MVPs, websites and apps, and provides white-label engineering for agencies.",
 };
 
-const faqJsonLd = {
+const websiteJsonLd = {
   "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "What does OrynthBuild build?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "OrynthBuild builds AI agents, machine learning tools, MVPs, workflow automation systems, and full-stack websites, UI/UX, and apps — from first line of code to deployed, working software.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Does OrynthBuild only work with agencies, or with direct clients too?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Both. OrynthBuild works as a white-label execution partner for agencies that need extra engineering capacity, and directly with founders, startups, and businesses that need a product built end-to-end under their own name.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What industries does OrynthBuild work with?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "OrynthBuild works with businesses across industries — including finance, banking, logistics, and other sectors that need custom software, AI agents, or automation, not just technology companies.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Does OrynthBuild work with clients outside India?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. OrynthBuild is based in India and works with founders, startups, and agencies worldwide, including the US, UK, UAE, Canada, and Germany.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What is white-label execution?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "White-label execution means OrynthBuild builds the product or feature, and the client (usually an agency) delivers it to their own end client under their own brand, with no mention of OrynthBuild.",
-      },
-    },
-  ],
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: "OrynthBuild",
+  url: SITE_URL,
+  publisher: { "@id": `${SITE_URL}/#organization` },
 };
-
 // viewportFit: "cover" lets fixed/full-bleed sections draw under the iPhone
 // notch/Dynamic Island and home-indicator area instead of leaving a hard
 // black bar there — paired with the env(safe-area-inset-*) padding added in
@@ -268,23 +132,42 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${michroma.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-void text-ink">
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-        />
+        {/* JSON-LD is serialized from the literals above, never from user
+            input — the only way to emit a raw <script> body in JSX. Escaped
+            through jsonLd() regardless: JSON.stringify does not escape "<",
+            so a future value containing "</script>" would otherwise close
+            this tag early and turn structured data into an injection point. */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(websiteJsonLd) }} />
         <div className="noise-layer" />
-        <SmoothScroll>
-          <CustomCursor />
-          {children}
-        </SmoothScroll>
+        <SmoothScroll>{children}</SmoothScroll>
       </body>
-      <GoogleAnalytics gaId="G-71Y3E7WE85" />
+      {/* Analytics, deliberately off the critical path.
+
+          @next/third-parties' <GoogleAnalytics> mounts gtag.js through next/script's
+          default `afterInteractive` strategy, so it runs during hydration: 163 KB of
+          third-party JavaScript and ~130ms of scripting competing with the page's own
+          first paint. On mobile that was a measurable share of the project pages' total
+          blocking time.
+
+          `lazyOnload` holds both tags until after the load event. The config call still
+          runs and the dataLayer shim is defined first, so the pageview and any later
+          gtag() calls behave exactly as before — only the timing of the request moves.
+
+          Inline script bodies are permitted here: the CSP in next.config.ts keeps
+          'unsafe-inline' for script-src because every page is statically prerendered
+          and a per-request nonce would force dynamic rendering. */}
+      <Script id="ga-init" strategy="lazyOnload">
+        {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-71Y3E7WE85');`}
+      </Script>
+      <Script
+        id="ga-src"
+        strategy="lazyOnload"
+        src="https://www.googletagmanager.com/gtag/js?id=G-71Y3E7WE85"
+      />
     </html>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { prefersReducedMotion, isMobileViewport } from "./motion";
+import { useIsMobile } from "@/components/useIsMobile";
 import type { WorldTheme } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -624,6 +625,341 @@ const EMAIL_GLYPHS = (() => {
   }));
 })();
 
+// ---------------------------------------------------------------------------
+// corridors motif — Africa One.
+//
+// A financial network seen from a long way off: markets of differing weight,
+// the corridors between them, value travelling those corridors, and the quiet
+// settlement marks left behind. Deliberately abstract — no map outline, no
+// dashboard, no charts. The point is the topology, not the geography.
+// ---------------------------------------------------------------------------
+
+/** Markets. A handful carry more weight than the rest, the way real corridors
+ *  concentrate around a few hubs. */
+const MARKET_NODES = (() => {
+  const rand = seededRandom(614);
+  return Array.from({ length: 17 }, (_, i) => ({
+    x: 8 + rand() * 84,
+    y: 10 + rand() * 78,
+    // a few majors, the rest secondary
+    r: i % 5 === 0 ? 0.5 + rand() * 0.3 : 0.2 + rand() * 0.2,
+    major: i % 5 === 0,
+    gold: i % 4 === 1,
+    duration: 7 + rand() * 7,
+    delay: rand() * 8,
+    i,
+  }));
+})();
+
+/** Which markets are connected.
+ *
+ *  Nearest-neighbour, with a hard distance cap. Linking markets by index — the
+ *  obvious approach — connects nodes that happen to sit at opposite corners and
+ *  produces long diagonals straight across the viewport, which read as generic
+ *  decorative lines rather than as a network. Short local hops between nearby
+ *  markets read as infrastructure. */
+const CORRIDOR_LINKS = (() => {
+  const rand = seededRandom(2081);
+  const MAX_SPAN = 26;
+  const out: { a: number; b: number; lift: number }[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < MARKET_NODES.length; i++) {
+    const A = MARKET_NODES[i];
+    const near = MARKET_NODES.map((B, j) => ({ j, d: Math.hypot(B.x - A.x, B.y - A.y) }))
+      .filter((n) => n.j !== i && n.d < MAX_SPAN)
+      .sort((p, q) => p.d - q.d)
+      .slice(0, A.major ? 3 : 2);
+
+    for (const n of near) {
+      const key = i < n.j ? `${i}-${n.j}` : `${n.j}-${i}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // curvature scales with span, so short hops stay nearly straight
+      out.push({ a: i, b: n.j, lift: n.d * (0.1 + rand() * 0.12) });
+    }
+  }
+  return out;
+})();
+
+const CORRIDOR_ARCS = (() => {
+  const rand = seededRandom(931);
+  return CORRIDOR_LINKS.map((link, i) => {
+    const A = MARKET_NODES[link.a];
+    const B = MARKET_NODES[link.b];
+    return {
+      d: `M${A.x},${A.y} Q${(A.x + B.x) / 2},${(A.y + B.y) / 2 - link.lift} ${B.x},${B.y}`,
+      opacity: 0.022 + rand() * 0.026,
+      gold: i % 4 === 0,
+      i,
+    };
+  });
+})();
+
+/** Multi-currency balance stacks.
+ *
+ *  A few short bars of differing length beside a major market — one account
+ *  holding several currencies at once, which is the entire premise of the
+ *  product. Reads as structure, not as a chart: no axes, no labels, no scale. */
+const BALANCE_STACKS = (() => {
+  const rand = seededRandom(8802);
+  return MARKET_NODES.filter((n) => n.major).map((n, i) => ({
+    i,
+    x: n.x + 1.4,
+    y: n.y + 1.1,
+    duration: 12 + rand() * 9,
+    delay: rand() * 11,
+    bars: Array.from({ length: 3 + Math.floor(rand() * 2) }, (_, b) => ({
+      b,
+      w: 0.9 + rand() * 3.2,
+      gold: b === 1,
+    })),
+  }));
+})();
+
+/** Double-entry marks.
+ *
+ *  Every debit has a matching credit — the oldest idea in accounting and the
+ *  one thing that actually distinguishes a financial system from a messaging
+ *  system. Drawn as a pair of ticks mirrored across a hairline, so the
+ *  symmetry is the only thing that registers. */
+const DOUBLE_ENTRIES = (() => {
+  const rand = seededRandom(6410);
+  return Array.from({ length: 9 }, (_, i) => ({
+    i,
+    x: 9 + rand() * 78,
+    y: 14 + rand() * 68,
+    w: 2.2 + rand() * 2.8,
+    gap: 0.75 + rand() * 0.5,
+    gold: i % 3 === 0,
+    duration: 10 + rand() * 9,
+    delay: rand() * 11,
+  }));
+})();
+
+/** Ledger structures — small stacks of short rules, the shape of an account
+ *  statement seen from far enough away that only its rhythm survives. */
+const LEDGER_BLOCKS = (() => {
+  const rand = seededRandom(3312);
+  return Array.from({ length: 6 }, (_, b) => {
+    const x = 7 + rand() * 78;
+    const y = 12 + rand() * 70;
+    const rows = 3 + Math.floor(rand() * 4);
+    return {
+      b,
+      gold: b % 3 === 0,
+      duration: 13 + rand() * 10,
+      delay: rand() * 12,
+      rows: Array.from({ length: rows }, (_, r) => ({
+        r,
+        x,
+        y: y + r * 1.5,
+        w: 2.6 + rand() * 5.4,
+      })),
+    };
+  });
+})();
+
+/** The corridors currently carrying value — a small subset, each with one
+ *  travelling mark. Same shape the routes and network motifs use, so the
+ *  existing MotionPath loop drives these without knowing what they are. */
+const VALUE_FLOWS = (() => {
+  const rand = seededRandom(1777);
+  return CORRIDOR_LINKS.slice(0, 5).map((link, i) => {
+    const A = MARKET_NODES[link.a];
+    const B = MARKET_NODES[link.b];
+    return {
+      d: `M${A.x},${A.y} Q${(A.x + B.x) / 2},${(A.y + B.y) / 2 - link.lift} ${B.x},${B.y}`,
+      dashSpeed: 9 + rand() * 6,
+      // Slow: a transfer crossing the field should take long enough that the
+      // eye never tracks it, only registers that something moved.
+      travelDuration: 17 + rand() * 11,
+      travelDelay: rand() * 15,
+      // Transfers are not all the same size. Varying the travelling mark's
+      // radius is the quietest way to say that a corridor carries value of
+      // differing weight, without putting a number anywhere near it.
+      weight: 0.3 + rand() * 0.34,
+      gold: i % 3 === 0,
+      i,
+    };
+  });
+})();
+
+/** Settlement ticks: a short mark beside a market, the trace of a corridor
+ *  clearing. Static geometry, animated only by opacity. */
+const SETTLEMENT_TICKS = (() => {
+  const rand = seededRandom(455);
+  return MARKET_NODES.filter((_, i) => i % 2 === 0).map((n, i) => ({
+    x: n.x + 1.6,
+    y: n.y - 1.2,
+    w: 1.4 + rand() * 2.2,
+    gold: i % 3 === 0,
+    duration: 9 + rand() * 8,
+    delay: rand() * 9,
+    i,
+  }));
+})();
+
+/** Account/wallet outlines — small rounded rectangles, barely there. */
+const ACCOUNT_OUTLINES = (() => {
+  const rand = seededRandom(1290);
+  return Array.from({ length: 7 }, (_, i) => ({
+    x: 6 + rand() * 82,
+    y: 12 + rand() * 74,
+    w: 3.4 + rand() * 2.6,
+    h: 2.2 + rand() * 1.4,
+    gold: i % 3 === 0,
+    duration: 11 + rand() * 9,
+    delay: rand() * 10,
+    i,
+  }));
+})();
+
+// ---------------------------------------------------------------------------
+// instruments motif — Aviation Preparation Academy.
+//
+// The quiet precision of flight training, at a distance: waypoints on gentle
+// course lines, heading and altitude reference marks, instrument arc scales,
+// and readiness ticks. No aircraft, no runway, no HUD — the discipline of the
+// instruments, not a picture of flying.
+// ---------------------------------------------------------------------------
+
+/** Waypoints. Sparse and roughly aligned along courses, the way navigation
+ *  fixes sit — not scattered at random. */
+const WAYPOINTS = (() => {
+  const rand = seededRandom(3140);
+  return Array.from({ length: 14 }, (_, i) => ({
+    i,
+    x: 7 + rand() * 82,
+    y: 11 + rand() * 76,
+    r: i % 4 === 0 ? 0.42 : 0.24,
+    major: i % 4 === 0,
+    warm: i % 6 === 2,
+    duration: 9 + rand() * 8,
+    delay: rand() * 9,
+  }));
+})();
+
+/** Course legs between consecutive waypoints — long, shallow, deliberate. */
+const COURSE_LEGS = (() => {
+  const rand = seededRandom(7705);
+  const out: { i: number; d: number[]; warm: boolean; opacity: number }[] = [];
+  for (let i = 0; i < WAYPOINTS.length - 1; i += 2) {
+    const A = WAYPOINTS[i];
+    const B = WAYPOINTS[i + 1];
+    out.push({
+      i,
+      d: [A.x, A.y, B.x, B.y],
+      warm: i % 6 === 0,
+      opacity: 0.026 + rand() * 0.024,
+    });
+  }
+  return out;
+})();
+
+/** Flight paths — a few long, very shallow arcs carrying a travelling mark.
+ *  Same shape the other motifs use, so the existing MotionPath loop drives
+ *  these without knowing what they are. */
+const FLIGHT_PATHS = (() => {
+  const rand = seededRandom(9021);
+  return Array.from({ length: 4 }, (_, i) => {
+    const y = 20 + i * 19 + rand() * 6;
+    const x0 = -4 + rand() * 10;
+    const x1 = 96 + rand() * 8;
+    const lift = 7 + rand() * 10;
+    return {
+      i,
+      d: `M${x0},${y} Q${(x0 + x1) / 2},${y - lift} ${x1},${y - rand() * 8}`,
+      travelDuration: 22 + rand() * 14,
+      travelDelay: rand() * 18,
+      warm: i === 1,
+    };
+  });
+})();
+
+/** Instrument arc scales — a graduated arc with tick marks, the face of a
+ *  heading or attitude indicator reduced to its geometry. */
+const INSTRUMENT_ARCS = (() => {
+  const rand = seededRandom(5560);
+  return Array.from({ length: 3 }, (_, i) => {
+    const cx = 14 + rand() * 70;
+    const cy = 16 + rand() * 64;
+    const r = 7 + rand() * 6;
+    const start = rand() * Math.PI * 2;
+    const span = 1.1 + rand() * 1.3;
+    const ticks = 7 + Math.floor(rand() * 5);
+    return {
+      i,
+      cx,
+      cy,
+      r,
+      warm: i === 1,
+      duration: 14 + rand() * 10,
+      delay: rand() * 12,
+      d:
+        `M${(cx + Math.cos(start) * r).toFixed(2)},${(cy + Math.sin(start) * r).toFixed(2)} ` +
+        `A${r},${r} 0 0 1 ${(cx + Math.cos(start + span) * r).toFixed(2)},${(cy + Math.sin(start + span) * r).toFixed(2)}`,
+      ticks: Array.from({ length: ticks }, (_, t) => {
+        const a = start + (t / (ticks - 1)) * span;
+        const long = t % 3 === 0;
+        const inner = r - (long ? 1.5 : 0.8);
+        return {
+          t,
+          x1: cx + Math.cos(a) * inner,
+          y1: cy + Math.sin(a) * inner,
+          x2: cx + Math.cos(a) * r,
+          y2: cy + Math.sin(a) * r,
+          long,
+        };
+      }),
+    };
+  });
+})();
+
+/** Altitude references — stacked horizontal rules with a graduated edge, the
+ *  shape of an altimeter tape rather than a chart. */
+const ALTITUDE_TAPES = (() => {
+  const rand = seededRandom(4471);
+  return Array.from({ length: 4 }, (_, i) => {
+    const x = 8 + rand() * 78;
+    const y = 14 + rand() * 66;
+    const rows = 4 + Math.floor(rand() * 4);
+    return {
+      i,
+      warm: i % 3 === 1,
+      duration: 12 + rand() * 9,
+      delay: rand() * 11,
+      rows: Array.from({ length: rows }, (_, r) => ({
+        r,
+        x,
+        y: y + r * 1.4,
+        w: r % 2 === 0 ? 2.6 + rand() * 1.8 : 1.3 + rand() * 0.9,
+      })),
+    };
+  });
+})();
+
+/** Readiness ticks — a short run of marks where the leading few are filled.
+ *  Progress toward ready, stated as geometry and nothing more. */
+const READINESS_MARKS = (() => {
+  const rand = seededRandom(6152);
+  return Array.from({ length: 5 }, (_, i) => {
+    const total = 5 + Math.floor(rand() * 4);
+    const filled = 2 + Math.floor(rand() * (total - 2));
+    const x = 10 + rand() * 74;
+    const y = 16 + rand() * 66;
+    return {
+      i,
+      x,
+      y,
+      warm: i % 2 === 0,
+      duration: 11 + rand() * 9,
+      delay: rand() * 10,
+      marks: Array.from({ length: total }, (_, m) => ({ m, on: m < filled })),
+    };
+  });
+})();
+
 export default function WorldBackground({ theme }: { theme: WorldTheme }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -631,26 +967,39 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
   const particleRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const routePathRefs = useRef<(SVGPathElement | null)[]>([]);
   const routeDotRefs = useRef<(SVGCircleElement | null)[]>([]);
-  // Checked once on mount (same convention as prefersReducedMotion elsewhere
-  // in this world) — starts false so SSR/first paint matches desktop, then
-  // settles before the entrance timeline below actually starts animating.
-  const [isMobile, setIsMobile] = useState(false);
+  // Assumed desktop for SSR/first paint, then settles before the entrance
+  // timeline below actually starts animating. The mobile branch here only
+  // thins out an already-rendered scene, so starting from the fuller desktop
+  // composition and reducing is the right way round — see useIsMobile.
+  const isMobile = useIsMobile(false);
 
   const { primaryRGB, glowPrimaryRGB, secondaryRGB, numericPool, motif } = theme;
   const isDocuments = motif === "documents";
   const isVerification = motif === "verification";
   const isRoutes = motif === "routes";
   const isNetwork = motif === "network";
-  const routeSpecs = isRoutes ? SHIPMENT_ROUTES : isNetwork ? OUTREACH_THREADS : [];
+  const isCorridors = motif === "corridors";
+  const isInstruments = motif === "instruments";
+  // Memoized so it can be a real dependency of the entrance effect below
+  // without the empty-array branch producing a new identity every render.
+  const routeSpecs = useMemo(
+    () =>
+      isRoutes
+        ? SHIPMENT_ROUTES
+        : isNetwork
+        ? OUTREACH_THREADS
+        : isCorridors
+        ? VALUE_FLOWS
+        : isInstruments
+        ? FLIGHT_PATHS
+        : [],
+    [isRoutes, isNetwork, isCorridors, isInstruments]
+  );
   // Elements shared by both "paper" motifs (ledger/blueprint lines, bounding-box
   // markers, cell highlights, overlay boxes, scan particles, scanner sweep) —
   // only the documents-only (page fold, accounting tables) and
   // verification-only (ID cards, confidence badges, watermark) pieces diverge.
   const isPaperLike = isDocuments || isVerification;
-
-  useEffect(() => {
-    setIsMobile(isMobileViewport());
-  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(MotionPathPlugin);
@@ -691,14 +1040,23 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
           ease: "sine.inOut",
         });
 
-        if (isRoutes || isNetwork) {
+        if (isRoutes || isNetwork || isCorridors || isInstruments) {
           routePathRefs.current.forEach((path, i) => {
             const dot = routeDotRefs.current[i];
             const spec = routeSpecs[i];
             if (!path || !dot || !spec) return;
             gsap.set(dot, { opacity: 0.85 });
             gsap.to(dot, {
-              motionPath: { path, align: path, alignOrigin: [0.5, 0.5] },
+              motionPath: {
+                path,
+                align: path,
+                alignOrigin: [0.5, 0.5],
+                // Instruments alone banks its travelling mark to face the
+                // direction of travel: the mark is a delta, and a delta that
+                // doesn't point where it's going reads as a bug. Every other
+                // motif's mark is a circle, where rotation is invisible.
+                autoRotate: isInstruments,
+              },
               duration: spec.travelDuration,
               delay: spec.travelDelay,
               repeat: -1,
@@ -725,7 +1083,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
       ctx.revert();
       window.removeEventListener("mousemove", handleMove);
     };
-  }, [isRoutes]);
+  }, [isRoutes, isNetwork, isCorridors, isInstruments, routeSpecs]);
 
   return (
     <div
@@ -1272,6 +1630,354 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
               </g>
             ))}
           </>
+        ) : isInstruments ? (
+          <>
+            {/* course legs — long, shallow, deliberate */}
+            {COURSE_LEGS.map((l) => (
+              <line
+                key={`leg-${l.i}`}
+                x1={l.d[0]}
+                y1={l.d[1]}
+                x2={l.d[2]}
+                y2={l.d[3]}
+                stroke={l.warm ? `rgba(${secondaryRGB},${l.opacity})` : `rgba(${primaryRGB},${l.opacity})`}
+                strokeWidth="0.06"
+                strokeDasharray="2.4 3.2"
+              />
+            ))}
+
+            {/* instrument arc scales — a graduated arc reduced to geometry */}
+            {INSTRUMENT_ARCS.map((a) => (
+              <g
+                key={`arc-${a.i}`}
+                className="iw-page-drift"
+                style={{ animationDuration: `${a.duration}s`, animationDelay: `${a.delay}s` }}
+              >
+                <path
+                  d={a.d}
+                  fill="none"
+                  stroke={a.warm ? `rgba(${secondaryRGB},0.05)` : `rgba(${primaryRGB},0.04)`}
+                  strokeWidth="0.08"
+                />
+                {a.ticks.map((t) => (
+                  <line
+                    key={`arc-${a.i}-${t.t}`}
+                    x1={t.x1}
+                    y1={t.y1}
+                    x2={t.x2}
+                    y2={t.y2}
+                    stroke={a.warm ? `rgba(${secondaryRGB},${t.long ? 0.07 : 0.04})` : `rgba(${primaryRGB},${t.long ? 0.06 : 0.034})`}
+                    strokeWidth="0.07"
+                  />
+                ))}
+              </g>
+            ))}
+
+            {/* altitude tapes — graduated stacks, not charts */}
+            {ALTITUDE_TAPES.map((tape) => (
+              <g
+                key={`alt-${tape.i}`}
+                className="iw-page-drift"
+                style={{ animationDuration: `${tape.duration}s`, animationDelay: `${tape.delay}s` }}
+              >
+                {tape.rows.map((row) => (
+                  <line
+                    key={`alt-${tape.i}-${row.r}`}
+                    x1={row.x}
+                    y1={row.y}
+                    x2={row.x + row.w}
+                    y2={row.y}
+                    stroke={tape.warm ? `rgba(${secondaryRGB},0.032)` : `rgba(${primaryRGB},0.028)`}
+                    strokeWidth="0.07"
+                  />
+                ))}
+              </g>
+            ))}
+
+            {/* readiness — a short run of marks, the leading few filled */}
+            {READINESS_MARKS.map((r) => (
+              <g
+                key={`ready-${r.i}`}
+                className="iw-cell-fade"
+                style={{ animationDuration: `${r.duration}s`, animationDelay: `${r.delay}s` }}
+              >
+                {r.marks.map((m) => (
+                  <rect
+                    key={`ready-${r.i}-${m.m}`}
+                    x={r.x + m.m * 1.15}
+                    y={r.y}
+                    width={0.55}
+                    height={0.55}
+                    fill={
+                      m.on
+                        ? r.warm
+                          ? `rgba(${secondaryRGB},0.13)`
+                          : `rgba(${primaryRGB},0.11)`
+                        : "none"
+                    }
+                    stroke={r.warm ? `rgba(${secondaryRGB},0.06)` : `rgba(${primaryRGB},0.05)`}
+                    strokeWidth="0.05"
+                  />
+                ))}
+              </g>
+            ))}
+
+            {/* waypoints — navigation fixes, a few weighted heavier */}
+            {WAYPOINTS.map((w) => (
+              <g key={`wp-${w.i}`}>
+                <path
+                  d={`M${w.x},${w.y - w.r * 1.7} L${w.x + w.r * 1.7},${w.y} L${w.x},${w.y + w.r * 1.7} L${w.x - w.r * 1.7},${w.y} Z`}
+                  fill="none"
+                  stroke={w.warm ? `rgba(${secondaryRGB},${w.major ? 0.17 : 0.1})` : `rgba(${primaryRGB},${w.major ? 0.15 : 0.09})`}
+                  strokeWidth="0.08"
+                  className="animate-pulse-soft"
+                  style={{ animationDuration: `${w.duration}s`, animationDelay: `${w.delay}s` }}
+                />
+              </g>
+            ))}
+
+            {/* position pulses — a slow expanding ring at the major fixes,
+               the way a position report registers and fades */}
+            {WAYPOINTS.filter((w) => w.major).map((w) => (
+              <circle
+                key={`ping-${w.i}`}
+                cx={w.x}
+                cy={w.y}
+                r={1.5}
+                fill="none"
+                stroke={w.warm ? `rgba(${secondaryRGB},0.1)` : `rgba(${primaryRGB},0.085)`}
+                strokeWidth="0.07"
+                className="iw-data-pulse-ring"
+                style={{ animationDuration: `${8 + w.i * 1.4}s`, animationDelay: `${w.delay}s` }}
+              />
+            ))}
+
+            {/* heading needle — one arc carries a needle that sweeps its
+               scale, slowly and continuously, the way a heading indicator
+               settles rather than snaps */}
+            {INSTRUMENT_ARCS.slice(0, 1).map((a) => (
+              <g key={`needle-${a.i}`} style={{ transformOrigin: `${a.cx}px ${a.cy}px` }}>
+                <line
+                  x1={a.cx}
+                  y1={a.cy}
+                  x2={a.cx}
+                  y2={a.cy - a.r * 0.82}
+                  stroke={`rgba(${secondaryRGB},0.1)`}
+                  strokeWidth="0.09"
+                  strokeLinecap="round"
+                  className="iw-heading-needle"
+                  style={{ transformOrigin: `${a.cx}px ${a.cy}px` }}
+                />
+                <circle cx={a.cx} cy={a.cy} r={0.22} fill={`rgba(${secondaryRGB},0.12)`} />
+              </g>
+            ))}
+
+            {/* flight paths — long shallow arcs, each carrying one aircraft
+               mark. A delta rather than a dot, banked to its heading by the
+               MotionPath autoRotate above: abstract, never a cartoon plane. */}
+            {FLIGHT_PATHS.map((p, i) => (
+              <g key={`fp-${p.i}`}>
+                <path
+                  ref={(el) => {
+                    routePathRefs.current[i] = el;
+                  }}
+                  d={p.d}
+                  fill="none"
+                  stroke={p.warm ? `rgba(${secondaryRGB},0.04)` : `rgba(${primaryRGB},0.032)`}
+                  strokeWidth="0.07"
+                  strokeDasharray="1.6 2.2"
+                />
+                <path
+                  ref={(el) => {
+                    routeDotRefs.current[i] = el as unknown as SVGCircleElement;
+                  }}
+                  d="M0.85,0 L-0.55,0.5 L-0.28,0 L-0.55,-0.5 Z"
+                  fill={p.warm ? `rgba(${secondaryRGB},0.55)` : `rgba(${primaryRGB},0.48)`}
+                  style={{ opacity: 0 }}
+                />
+              </g>
+            ))}
+          </>
+        ) : isCorridors ? (
+          <>
+            {/* Corridor arcs — the relationships between markets. Deliberately
+               static hairlines: the network is standing infrastructure, and
+               animating the lines themselves is what made them read as
+               decorative streaks. The only motion here is value in transit,
+               travelling a handful of them below. */}
+            {CORRIDOR_ARCS.map((c) => (
+              <path
+                key={`corridor-${c.i}`}
+                d={c.d}
+                fill="none"
+                stroke={c.gold ? `rgba(${secondaryRGB},${c.opacity})` : `rgba(${primaryRGB},${c.opacity})`}
+                strokeWidth="0.06"
+              />
+            ))}
+
+            {/* ledger blocks — the rhythm of a statement, not its contents */}
+            {LEDGER_BLOCKS.map((blk) => (
+              <g
+                key={`ledger-${blk.b}`}
+                className="iw-page-drift"
+                style={{ animationDuration: `${blk.duration}s`, animationDelay: `${blk.delay}s` }}
+              >
+                {blk.rows.map((row) => (
+                  <line
+                    key={`ledger-${blk.b}-${row.r}`}
+                    x1={row.x}
+                    y1={row.y}
+                    x2={row.x + row.w}
+                    y2={row.y}
+                    stroke={blk.gold ? `rgba(${secondaryRGB},0.03)` : `rgba(${primaryRGB},0.026)`}
+                    strokeWidth="0.07"
+                  />
+                ))}
+              </g>
+            ))}
+
+            {/* account outlines — wallets held in those markets */}
+            {ACCOUNT_OUTLINES.map((a) => (
+              <rect
+                key={`acct-${a.i}`}
+                x={a.x}
+                y={a.y}
+                width={a.w}
+                height={a.h}
+                rx={0.35}
+                fill="none"
+                stroke={a.gold ? `rgba(${secondaryRGB},0.03)` : `rgba(${primaryRGB},0.026)`}
+                strokeWidth="0.07"
+                className="iw-page-drift"
+                style={{ animationDuration: `${a.duration}s`, animationDelay: `${a.delay}s` }}
+              />
+            ))}
+
+            {/* balance stacks — one account, several currencies at once */}
+            {BALANCE_STACKS.map((s) => (
+              <g
+                key={`bal-${s.i}`}
+                className="iw-page-drift"
+                style={{ animationDuration: `${s.duration}s`, animationDelay: `${s.delay}s` }}
+              >
+                {s.bars.map((bar) => (
+                  <line
+                    key={`bal-${s.i}-${bar.b}`}
+                    x1={s.x}
+                    y1={s.y + bar.b * 0.9}
+                    x2={s.x + bar.w}
+                    y2={s.y + bar.b * 0.9}
+                    stroke={bar.gold ? `rgba(${secondaryRGB},0.10)` : `rgba(${primaryRGB},0.082)`}
+                    strokeWidth="0.32"
+                    strokeLinecap="round"
+                  />
+                ))}
+              </g>
+            ))}
+
+            {/* double entry — a debit and its matching credit, mirrored */}
+            {DOUBLE_ENTRIES.map((d) => (
+              <g
+                key={`entry-${d.i}`}
+                className="iw-cell-fade"
+                style={{ animationDuration: `${d.duration}s`, animationDelay: `${d.delay}s` }}
+              >
+                <line
+                  x1={d.x}
+                  y1={d.y - d.gap}
+                  x2={d.x + d.w}
+                  y2={d.y - d.gap}
+                  stroke={d.gold ? `rgba(${secondaryRGB},0.12)` : `rgba(${primaryRGB},0.10)`}
+                  strokeWidth="0.09"
+                />
+                <line
+                  x1={d.x}
+                  y1={d.y}
+                  x2={d.x + d.w * 1.25}
+                  y2={d.y}
+                  stroke={`rgba(${primaryRGB},0.022)`}
+                  strokeWidth="0.05"
+                />
+                <line
+                  x1={d.x}
+                  y1={d.y + d.gap}
+                  x2={d.x + d.w}
+                  y2={d.y + d.gap}
+                  stroke={d.gold ? `rgba(${secondaryRGB},0.12)` : `rgba(${primaryRGB},0.10)`}
+                  strokeWidth="0.09"
+                />
+              </g>
+            ))}
+
+            {/* settlement ticks — the mark a cleared corridor leaves behind */}
+            {SETTLEMENT_TICKS.map((s) => (
+              <line
+                key={`settle-${s.i}`}
+                x1={s.x}
+                y1={s.y}
+                x2={s.x + s.w}
+                y2={s.y}
+                stroke={s.gold ? `rgba(${secondaryRGB},0.15)` : `rgba(${primaryRGB},0.13)`}
+                strokeWidth="0.08"
+                className="iw-cell-fade"
+                style={{ animationDuration: `${s.duration}s`, animationDelay: `${s.delay}s` }}
+              />
+            ))}
+
+            {/* transaction pulses — a ring expanding out of a major market as
+               value lands there. The same device the logistics world uses for
+               a GPS ping; here it is money arriving, and it is what makes the
+               network read as live rather than drawn. */}
+            {MARKET_NODES.filter((n) => n.major).map((n) => (
+              <circle
+                key={`tx-${n.i}`}
+                cx={n.x}
+                cy={n.y}
+                r={1.7}
+                fill="none"
+                stroke={n.gold ? `rgba(${secondaryRGB},0.13)` : `rgba(${primaryRGB},0.11)`}
+                strokeWidth="0.08"
+                className="iw-data-pulse-ring"
+                style={{ animationDuration: `${7 + n.i * 1.1}s`, animationDelay: `${n.delay}s` }}
+              />
+            ))}
+
+            {/* markets — a few majors carrying the weight, the rest secondary */}
+            {MARKET_NODES.map((n) => (
+              <circle
+                key={`market-${n.i}`}
+                cx={n.x}
+                cy={n.y}
+                r={n.r}
+                fill={n.gold ? `rgba(${secondaryRGB},${n.major ? 0.2 : 0.11})` : `rgba(${primaryRGB},${n.major ? 0.18 : 0.1})`}
+                className="animate-pulse-soft"
+                style={{ animationDuration: `${n.duration}s`, animationDelay: `${n.delay}s` }}
+              />
+            ))}
+
+            {/* value in flight — the corridors currently carrying a transfer */}
+            {VALUE_FLOWS.map((r, i) => (
+              <g key={`flow-${r.i}`}>
+                <path
+                  ref={(el) => {
+                    routePathRefs.current[i] = el;
+                  }}
+                  d={r.d}
+                  fill="none"
+                  stroke={r.gold ? `rgba(${secondaryRGB},0.055)` : `rgba(${primaryRGB},0.045)`}
+                  strokeWidth="0.08"
+                />
+                <circle
+                  ref={(el) => {
+                    routeDotRefs.current[i] = el;
+                  }}
+                  r={r.weight}
+                  fill={r.gold ? `rgba(${secondaryRGB},0.5)` : `rgba(${primaryRGB},0.44)`}
+                  style={{ opacity: 0 }}
+                />
+              </g>
+            ))}
+          </>
         ) : (
           <>
             {CURVE_LINES.map(({ d, dashSpeed, opacity, strokeWidth, gold, i }) => (
@@ -1399,7 +2105,7 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
                 }}
               />
             ))
-          : isRoutes
+          : isRoutes || isCorridors || isInstruments
           ? SHIPMENT_FLOW_PARTICLES.map((t, i) => (
               <span
                 key={`flow-${i}`}
@@ -1444,6 +2150,24 @@ export default function WorldBackground({ theme }: { theme: WorldTheme }) {
             style={{
               height: "160px",
               background: `linear-gradient(to bottom, transparent, rgba(${primaryRGB},0.022) 45%, rgba(${secondaryRGB},0.028) 50%, rgba(${primaryRGB},0.022) 55%, transparent)`,
+            }}
+          />
+        </div>
+      )}
+
+      {/* Layer 4d: corridors — the settlement window.
+         A batch clearing cycle passing over the network: everything it crosses
+         is, for that moment, being settled. Reuses the same sweep the paper
+         motifs use for scanning, at roughly a third of the speed and half the
+         intensity, so it reads as a cycle rather than as a scanner. */}
+      {isCorridors && (
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            className="iw-scan-line absolute inset-x-0"
+            style={{
+              height: "300px",
+              animationDuration: "68s",
+              background: `linear-gradient(to bottom, transparent, rgba(${primaryRGB},0.012) 40%, rgba(${secondaryRGB},0.016) 50%, rgba(${primaryRGB},0.012) 60%, transparent)`,
             }}
           />
         </div>

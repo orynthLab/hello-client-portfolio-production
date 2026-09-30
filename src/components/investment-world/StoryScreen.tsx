@@ -34,12 +34,12 @@ function BeatShell({
   return (
     <div ref={ref}>
       <p className="iw-section-label">{label}</p>
-      <h3
+      <h2
         className="mt-3 text-2xl font-light"
         style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif", letterSpacing: "-0.02em", color: "#eef1f9" }}
       >
         {title}
-      </h3>
+      </h2>
       <div className="mt-3 text-sm leading-relaxed text-ink-dim">{children}</div>
     </div>
   );
@@ -112,7 +112,6 @@ function CardsBeat({ cards }: { cards: Extract<StoryBeat, { kind: "cards" }>["ca
       {cards.map((c) => (
         <div
           key={c.title}
-          data-cursor="explore"
           className="iw-glass rounded-xl p-4 transition-transform duration-300 hover:-translate-y-0.5"
           style={{ borderTop: `2px solid ${c.accent}` }}
         >
@@ -293,7 +292,6 @@ export default function StoryScreen({
                     />
                     <button
                       type="button"
-                      data-cursor="explore"
                       aria-label="Play walkthrough video"
                       onClick={() => setLightboxOpen(true)}
                       className="group absolute inset-0 flex items-center justify-center"
