@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import { projects, getProject, metaSystem } from "@/data/projects";
 import { jsonLd } from "@/lib/jsonLd";
-import ProjectRelatedServices from "@/components/ProjectRelatedServices";
 
 // ---------------------------------------------------------------------------
 // One dynamic route serves every project world, so a static import of all of
@@ -187,7 +186,6 @@ export default async function ProjectPage({
         description={identity.description}
       />
       <World />
-      <ProjectRelatedServices projectSlug={slug} />
     </>
   );
 }

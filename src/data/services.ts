@@ -558,18 +558,6 @@ export const services: Service[] = [
   },
 ];
 
-/** The services a given project is cited as work for — the reverse of each
- *  service's `relatedProjectSlugs`.
- *
- *  Derived rather than stored so the two directions cannot drift: a project
- *  page links back to exactly the services that claim it, and adding a project
- *  to a service immediately gives that project a link in return. Case-study
- *  pages were previously a dead end — they linked nowhere but home, so nothing
- *  on the site carried a reader from the work to the service that does it. */
-export function getServicesForProject(projectSlug: string) {
-  return services.filter((s) => s.relatedProjectSlugs.includes(projectSlug));
-}
-
 export function getService(slug: string) {
   return services.find((s) => s.slug === slug);
 }

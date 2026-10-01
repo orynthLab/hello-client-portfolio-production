@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import BootSequence from "@/components/BootSequence";
 import TheCore from "@/components/TheCore";
-import HomeIntro from "@/components/HomeIntro";
 import { useIsMobile } from "@/components/useIsMobile";
 
 const ParticleField = dynamic(() => import("@/components/ParticleField"), {
@@ -76,10 +75,6 @@ export default function Home() {
         <BootSequence onReveal={handleBootReveal} onExitComplete={handleBootExitComplete} />
       )}
 
-      {/* Static, always-rendered, and deliberately outside everything above:
-          the Core only mounts after the boot finishes in the browser, so this
-          is the only part of the homepage a crawler ever reads. See HomeIntro. */}
-      <HomeIntro />
     </main>
   );
 }

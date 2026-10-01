@@ -1,6 +1,5 @@
 "use client";
 
-import AIBrandMark from "@/components/AIBrandMark";
 import ContactModal from "@/components/ContactModal";
 import CoreUniverse from "@/components/core/CoreUniverse";
 
@@ -9,7 +8,7 @@ import CoreUniverse from "@/components/core/CoreUniverse";
 //
 // The navigation mechanism here is the particle universe in
 // src/components/core/: one dark sphere that breaks apart into project
-// clusters. This file owns only the screen's chrome (brand mark, contact) and
+// clusters. This file owns only the screen's chrome (the contact button) and
 // the stage the universe fills, so the universe stays a self-contained,
 // data-driven system.
 //
@@ -20,7 +19,11 @@ import CoreUniverse from "@/components/core/CoreUniverse";
 export default function TheCore() {
   return (
     <div className="relative min-h-dvh w-full overflow-hidden bg-transparent">
-      <AIBrandMark className="safe-top safe-left fixed z-40" />
+      {/* No brand mark here. It is a <Link href="/">, and the Core is "/" —
+          so on this screen it was a link to the page you are already on:
+          nothing happens when you click it, and a screen reader announces a
+          navigation that does not exist. It stays on the service pages, where
+          it genuinely goes somewhere. */}
       <ContactModal className="safe-top safe-right fixed z-40" />
 
       <div className="relative z-10 h-dvh w-full">
