@@ -94,7 +94,7 @@ export const services: Service[] = [
       "document-identifier-verifier",
       "autonomous-business-development-agent",
     ],
-    relatedServiceSlugs: ["workflow-automation", "full-stack-development"],
+    relatedServiceSlugs: ["workflow-automation", "document-ai", "ai-product-development"],
   },
   {
     slug: "mvp-development",
@@ -156,8 +156,8 @@ export const services: Service[] = [
           "The next stage should follow what users need and what the product team learns. That may mean refining the core workflow, adding validated features, or strengthening performance and operations as usage grows.",
       },
     ],
-    relatedProjectSlugs: ["autonomous-business-development-agent", "igc-logistics-platform"],
-    relatedServiceSlugs: ["full-stack-development", "ai-agent-development"],
+    relatedProjectSlugs: ["aviation-preparation-academy", "autonomous-business-development-agent", "igc-logistics-platform"],
+    relatedServiceSlugs: ["full-stack-development", "ai-product-development", "white-label-execution"],
   },
   {
     slug: "workflow-automation",
@@ -224,7 +224,7 @@ export const services: Service[] = [
       },
     ],
     relatedProjectSlugs: ["igc-logistics-platform", "document-identifier-verifier", "company-financial-report-agent"],
-    relatedServiceSlugs: ["ai-agent-development", "full-stack-development"],
+    relatedServiceSlugs: ["ai-agent-development", "document-ai", "full-stack-development"],
   },
   {
     slug: "full-stack-development",
@@ -286,8 +286,8 @@ export const services: Service[] = [
           "Yes. We plan the initial architecture around the known requirements and likely changes, then use actual usage and product priorities to guide future scaling and features.",
       },
     ],
-    relatedProjectSlugs: ["company-financial-report-agent", "igc-logistics-platform", "investment-advisory-agent"],
-    relatedServiceSlugs: ["mvp-development", "workflow-automation"],
+    relatedProjectSlugs: ["aviation-preparation-academy", "cross-border-transfer-engine", "company-financial-report-agent", "igc-logistics-platform"],
+    relatedServiceSlugs: ["mvp-development", "white-label-execution", "fintech-software-development"],
   },
   {
     slug: "white-label-execution",
@@ -350,7 +350,7 @@ export const services: Service[] = [
       },
     ],
     relatedProjectSlugs: ["autonomous-business-development-agent", "igc-logistics-platform"],
-    relatedServiceSlugs: ["ai-agent-development", "mvp-development", "full-stack-development"],
+    relatedServiceSlugs: ["full-stack-development", "mvp-development", "ai-agent-development"],
   },
   {
     slug: "document-ai",
@@ -418,7 +418,7 @@ export const services: Service[] = [
       },
     ],
     relatedProjectSlugs: ["document-identifier-verifier", "company-financial-report-agent"],
-    relatedServiceSlugs: ["workflow-automation", "ai-agent-development", "full-stack-development"],
+    relatedServiceSlugs: ["workflow-automation", "fintech-software-development", "ai-agent-development"],
   },
   {
     slug: "fintech-software-development",
@@ -485,8 +485,8 @@ export const services: Service[] = [
           "Potential integrations depend on the source system’s interfaces, data rights, access controls, and project scope. Those requirements should be assessed and agreed before implementation.",
       },
     ],
-    relatedProjectSlugs: ["company-financial-report-agent", "investment-advisory-agent", "document-identifier-verifier"],
-    relatedServiceSlugs: ["ai-agent-development", "document-ai", "full-stack-development"],
+    relatedProjectSlugs: ["cross-border-transfer-engine", "company-financial-report-agent", "investment-advisory-agent", "document-identifier-verifier"],
+    relatedServiceSlugs: ["document-ai", "ai-product-development", "full-stack-development"],
   },
   {
     slug: "ai-product-development",
@@ -554,9 +554,21 @@ export const services: Service[] = [
       },
     ],
     relatedProjectSlugs: ["company-financial-report-agent", "document-identifier-verifier", "investment-advisory-agent", "autonomous-business-development-agent"],
-    relatedServiceSlugs: ["ai-agent-development", "mvp-development", "full-stack-development"],
+    relatedServiceSlugs: ["ai-agent-development", "mvp-development", "fintech-software-development"],
   },
 ];
+
+/** The services a given project is cited as work for — the reverse of each
+ *  service's `relatedProjectSlugs`.
+ *
+ *  Derived rather than stored so the two directions cannot drift: a project
+ *  page links back to exactly the services that claim it, and adding a project
+ *  to a service immediately gives that project a link in return. Case-study
+ *  pages were previously a dead end — they linked nowhere but home, so nothing
+ *  on the site carried a reader from the work to the service that does it. */
+export function getServicesForProject(projectSlug: string) {
+  return services.filter((s) => s.relatedProjectSlugs.includes(projectSlug));
+}
 
 export function getService(slug: string) {
   return services.find((s) => s.slug === slug);

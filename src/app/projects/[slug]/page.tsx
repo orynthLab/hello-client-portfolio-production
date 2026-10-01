@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import { projects, getProject, metaSystem } from "@/data/projects";
 import { jsonLd } from "@/lib/jsonLd";
+import ProjectRelatedServices from "@/components/ProjectRelatedServices";
 
 // ---------------------------------------------------------------------------
 // One dynamic route serves every project world, so a static import of all of
@@ -28,6 +29,11 @@ const WORLDS: Record<string, React.ComponentType> = {
 };
 
 const SITE_URL = "https://www.orynthbuild.site";
+
+/** The root opengraph-image. Pages that declare their own `openGraph` replace
+ *  the inherited one wholesale, so each has to name it again or share with no
+ *  image at all. */
+const OG_IMAGE = "/opengraph-image";
 
 // The name a world is presented under, where it differs from the raw project
 // record. Module scope on purpose: the page metadata and the structured data
@@ -125,8 +131,8 @@ export async function generateMetadata({
       description,
       keywords: ["OrynthBuild", "Hello Client", "creative engineering", "white label execution agency"],
       alternates: { canonical: url },
-      openGraph: { type: "article", url, title: `${title} | OrynthBuild`, description },
-      twitter: { card: "summary_large_image", title: `${title} | OrynthBuild`, description },
+      openGraph: { type: "article", url, title: `${title} | OrynthBuild`, description, images: [OG_IMAGE] },
+      twitter: { card: "summary_large_image", title: `${title} | OrynthBuild`, description, images: [OG_IMAGE] },
     };
   }
   const project = getProject(slug);
@@ -148,11 +154,13 @@ export async function generateMetadata({
       url,
       title: `${title} | OrynthBuild`,
       description: project.tagline,
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | OrynthBuild`,
       description: project.tagline,
+      images: [OG_IMAGE],
     },
   };
 }
@@ -179,6 +187,7 @@ export default async function ProjectPage({
         description={identity.description}
       />
       <World />
+      <ProjectRelatedServices projectSlug={slug} />
     </>
   );
 }

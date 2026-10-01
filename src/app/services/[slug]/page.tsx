@@ -7,6 +7,11 @@ import { jsonLd } from "@/lib/jsonLd";
 
 const SITE_URL = "https://www.orynthbuild.site";
 
+/** The root opengraph-image. Pages that declare their own `openGraph` replace
+ *  the inherited one wholesale, so each has to name it again or share with no
+ *  image at all. */
+const OG_IMAGE = "/opengraph-image";
+
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
 }
@@ -35,11 +40,13 @@ export async function generateMetadata({
       url,
       title: `${service.seoTitle} | OrynthBuild`,
       description: service.description,
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: `${service.seoTitle} | OrynthBuild`,
       description: service.description,
+      images: [OG_IMAGE],
     },
   };
 }

@@ -91,6 +91,15 @@ const organizationJsonLd = {
   name: "OrynthBuild",
   url: SITE_URL,
   email: "contact@orynthbuild.site",
+  // Googles entity panel looks for a logo on the Organization; without one
+  // the brand has no image attached to it anywhere in structured data. The
+  // file is the same mark the site renders in AIBrandMark, nothing new.
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/logo.svg`,
+    width: 512,
+    height: 512,
+  },
   sameAs: [
     "https://clutch.co/profile/orynthbuild",
     "https://www.goodfirms.co/company/orynthbuild",

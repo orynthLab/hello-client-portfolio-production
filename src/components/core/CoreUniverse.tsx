@@ -289,7 +289,18 @@ export default function CoreUniverse() {
   };
 
   return (
-    <div ref={wrapRef} className="absolute inset-0 overflow-hidden" style={{ touchAction: "pan-y" }}>
+    // data-lenis-prevent, but only while the universe is open. The wheel
+    // handler above already calls preventDefault() there — that stops native
+    // scrolling, not Lenis, which drives the page itself and would otherwise
+    // scroll it underneath a zoom gesture now that the homepage has content
+    // below the Core. Before the universe opens the attribute is absent, so
+    // the page scrolls normally and the section below stays reachable.
+    <div
+      ref={wrapRef}
+      data-lenis-prevent={phase === "universe" ? "" : undefined}
+      className="absolute inset-0 overflow-hidden"
+      style={{ touchAction: "pan-y" }}
+    >
       <canvas ref={canvasRef} aria-hidden className="absolute inset-0 h-full w-full" />
 
       {/* the accent wipe that carries the visitor into a project world */}
