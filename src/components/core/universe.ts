@@ -202,7 +202,10 @@ export function layoutClusters(count: number, opts: LayoutOptions): LayoutPoint[
 // ellipses.
 // ---------------------------------------------------------------------------
 
-export type Camera = { yaw: number; pitch: number; zoom: number };
+/** pan is a screen-space offset in pixels, applied after projection. It is
+ *  what lets the zoom be anchored somewhere other than the middle: see
+ *  CoreParticleEngine.zoomBy. */
+export type Camera = { yaw: number; pitch: number; zoom: number; panX: number; panY: number };
 
 export type Projected = { x: number; y: number; scale: number; depth: number };
 
@@ -233,5 +236,14 @@ export function project(
   const denom = Math.max(0.35, FOCAL + z2);
   const scale = (FOCAL / denom) * cam.zoom;
 
-  return { x: cx + x1 * unit * scale, y: cy + y1 * unit * scale, scale, depth: z2 };
+  // Note for anyone changing this line: `scale` is linear in cam.zoom and
+  // nothing else here depends on it, so the whole projected field scales
+  // about (cx + panX, cy + panY). That is exactly why zoomBy can anchor the
+  // zoom on the cursor with a closed-form pan rather than an approximation.
+  return {
+    x: cx + cam.panX + x1 * unit * scale,
+    y: cy + cam.panY + y1 * unit * scale,
+    scale,
+    depth: z2,
+  };
 }

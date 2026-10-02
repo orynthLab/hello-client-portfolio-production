@@ -215,7 +215,9 @@ export default function CoreUniverse() {
       // should scroll normally.
       if (engineRef.current?.getPhase() !== "universe") return;
       e.preventDefault();
-      engineRef.current.zoomBy(e.deltaY);
+      // Canvas-relative, so the zoom anchors on whatever the pointer is over.
+      const r = wrap.getBoundingClientRect();
+      engineRef.current.zoomBy(e.deltaY, e.clientX - r.left, e.clientY - r.top);
     };
 
     wrap.addEventListener("pointerdown", onDown);
@@ -289,7 +291,15 @@ export default function CoreUniverse() {
   };
 
   return (
-    <div ref={wrapRef} className="absolute inset-0 overflow-hidden" style={{ touchAction: "pan-y" }}>
+    // select-none: this surface is dragged, not read. Without it a drag to
+    // orbit also starts a native text selection, and every project label on
+    // screen lights up blue behind the gesture. Nothing in here is text anyone
+    // needs to copy — it is a navigation canvas with labels drawn over it.
+    <div
+      ref={wrapRef}
+      className="absolute inset-0 select-none overflow-hidden"
+      style={{ touchAction: "pan-y" }}
+    >
       <canvas ref={canvasRef} aria-hidden className="absolute inset-0 h-full w-full" />
 
       {/* the accent wipe that carries the visitor into a project world */}
@@ -423,9 +433,21 @@ export default function CoreUniverse() {
       {universeOpen && (
         <div
           aria-hidden
-          className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-x-7 gap-y-2 px-6 font-mono text-[9px] uppercase tracking-[0.26em] text-ink-faint/70"
+          // inset-x-0, not left-1/2 with a -translate-x-1/2. The translate
+          // centres this visually but leaves its layout width running from the
+          // middle of the screen to the right edge — half the viewport. At 390px
+          // that is 195px, narrower than the line itself, so one line wrapped to
+          // two and the block grew into the space the lowest cluster's label
+          // occupies. Spanning the full width and centring with justify-center
+          // does what the translate was reaching for.
+          className="pointer-events-none absolute inset-x-0 bottom-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 px-6 font-mono text-[9px] uppercase tracking-[0.26em] text-ink-faint/70"
         >
-          <span>Drag to explore</span>
+          {/* One line on a phone. All three read fine on a wide screen, but at
+              390px they wrap to two or three lines and become a 50-60px block
+              sitting exactly where the lowest cluster's label wants to be.
+              Dragging to look around is the obvious gesture on a touch screen;
+              the part worth saying is what a tap does. */}
+          {!isTouch && <span>Drag to explore</span>}
           {!isTouch && <span>Scroll to zoom</span>}
           <span>{isTouch ? "Tap a world to enter" : "Click a world to enter"}</span>
         </div>

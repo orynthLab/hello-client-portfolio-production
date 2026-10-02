@@ -122,6 +122,11 @@ export type EngineOptions = {
   visual?: { energy: number; alpha: number };
 };
 
+/** Wheel-zoom bounds, named because zoomBy and clampPan both reason about
+ *  how much of the range has been used. */
+const ZOOM_MIN = 0.65;
+const ZOOM_MAX = 2.1;
+
 export class CoreParticleEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -168,8 +173,8 @@ export class CoreParticleEngine {
   private sprites = new Map<string, HTMLCanvasElement>();
   private points: ClusterScreenPoint[] = [];
 
-  private cam: Camera = { yaw: 0, pitch: 0, zoom: 1 };
-  private camTarget: Camera = { yaw: 0, pitch: 0, zoom: 1 };
+  private cam: Camera = { yaw: 0, pitch: 0, zoom: 1, panX: 0, panY: 0 };
+  private camTarget: Camera = { yaw: 0, pitch: 0, zoom: 1, panX: 0, panY: 0 };
 
   private hovered = -1;
   private highlight = -1;
@@ -311,9 +316,23 @@ export class CoreParticleEngine {
     this.sphereR = coreRadiusPx(this.w, this.h) / this.unit;
 
     const narrow = this.w < 640;
+
+    // How far out the field may reach depends on how much height there
+    // actually is, because the gesture hints own the bottom strip and the
+    // lowest cluster's label hangs ~48px below its node.
+    //
+    // A phone in a browser has far less height than its screen suggests — the
+    // address bar takes 150-200px. Measured at 390x664 and 320x568, the lowest
+    // label landed 18-47px *inside* the hint strip.
+    //
+    // Laptops have the same problem and it is easy to miss on a large monitor:
+    // at 1280x720 the overlap measured 11px. Both get a tighter field; a tall
+    // phone and a full-height desktop are unchanged.
+    const shortPhone = narrow && this.h < 720;
+    const shortDesktop = !narrow && this.h < 880;
     this.clusterPts = layoutClusters(this.opts.nodes.length, {
       aspect: this.w / Math.max(1, this.h),
-      maxRadius: narrow ? 0.8 : 0.88,
+      maxRadius: narrow ? (shortPhone ? 0.66 : 0.8) : shortDesktop ? 0.78 : 0.88,
       minRadius: narrow ? 0.36 : 0.34,
       // A narrow screen has to hold apart labels, not dots: the gap that
       // reads as generous around a 6px node is nowhere near enough around
@@ -365,8 +384,51 @@ export class CoreParticleEngine {
     this.camTarget.pitch = Math.max(-0.55, Math.min(0.55, this.camTarget.pitch + dy * 0.0034));
   }
 
-  zoomBy(delta: number) {
-    this.camTarget.zoom = Math.max(0.65, Math.min(2.1, this.camTarget.zoom * (1 - delta * 0.0012)));
+  /** Zoom toward a screen point — the cursor, when there is one.
+   *
+   *  Zooming about the middle is the easy version and it feels wrong the
+   *  moment the thing you are looking at is not in the middle: the cluster
+   *  you were reaching for slides away from under the pointer. Anchoring it
+   *  is what makes the field read as an object you are moving through rather
+   *  than a picture being resized.
+   *
+   *  The maths is exact rather than approximate, because the projection
+   *  scales the whole field linearly about (cx + panX, cy + panY) — see the
+   *  note in project(). A point at screen offset `u` from that origin sits at
+   *  u * (z1/z0) after the zoom, so holding it still means
+   *
+   *      pan' = u - (u - pan) * (z1 / z0)
+   *
+   *  Pass no point and it falls back to the centre, which is what a
+   *  programmatic zoom should do. */
+  zoomBy(delta: number, screenX?: number, screenY?: number) {
+    const z0 = this.camTarget.zoom;
+    const z1 = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z0 * (1 - delta * 0.0012)));
+    if (z1 === z0) return;
+
+    const ratio = z1 / z0;
+    const ux = screenX === undefined ? 0 : screenX - this.cx;
+    const uy = screenY === undefined ? 0 : screenY - this.cy;
+
+    this.camTarget.panX = ux - (ux - this.camTarget.panX) * ratio;
+    this.camTarget.panY = uy - (uy - this.camTarget.panY) * ratio;
+    this.camTarget.zoom = z1;
+    this.clampPan();
+  }
+
+  /** Keep the field reachable.
+   *
+   *  Without this, a few zoom-ins off to one side walk the whole universe out
+   *  of the viewport with no way back. The allowance grows with how far in
+   *  the visitor has zoomed and collapses to nothing at minimum zoom — so
+   *  zooming all the way out always recentres, which doubles as the escape
+   *  hatch when someone has wandered. */
+  private clampPan() {
+    const room = (this.camTarget.zoom - ZOOM_MIN) / (ZOOM_MAX - ZOOM_MIN);
+    const maxX = this.w * 0.42 * room;
+    const maxY = this.h * 0.42 * room;
+    this.camTarget.panX = Math.max(-maxX, Math.min(maxX, this.camTarget.panX));
+    this.camTarget.panY = Math.max(-maxY, Math.min(maxY, this.camTarget.panY));
   }
 
   setPointer(x: number, y: number) {
@@ -492,6 +554,8 @@ export class CoreParticleEngine {
     this.cam.yaw += (this.camTarget.yaw - this.cam.yaw) * Math.min(1, dt / 220);
     this.cam.pitch += (this.camTarget.pitch - this.cam.pitch) * Math.min(1, dt / 220);
     this.cam.zoom += (this.camTarget.zoom - this.cam.zoom) * Math.min(1, dt / 220);
+    this.cam.panX += (this.camTarget.panX - this.cam.panX) * Math.min(1, dt / 220);
+    this.cam.panY += (this.camTarget.panY - this.cam.panY) * Math.min(1, dt / 220);
 
     this.burstFlash = Math.max(0, this.burstFlash - dt / 350);
     for (const s of this.shockwaves) s.t += dt;
