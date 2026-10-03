@@ -47,7 +47,11 @@ export const QUALITY: Record<"desktop" | "tablet" | "mobile", EngineQuality> = {
   desktop: { count: 1800, perCluster: 16, dustKeep: 0.2, dprCap: 1.5 },
   tablet: { count: 1050, perCluster: 13, dustKeep: 0.17, dprCap: 1.35 },
   // The board asks for mobile to be intentional, not the desktop field shrunk.
-  mobile: { count: 520, perCluster: 10, dustKeep: 0.14, dprCap: 1.25 },
+  // It had been cut far past that, though: 520 particles against the desktop
+  // 1800, at dpr 1.25, read as a visibly coarser Core rather than a different
+  // one. Deferring analytics freed roughly 270ms of main-thread time on this
+  // page, which buys back the density and the sharpness.
+  mobile: { count: 1150, perCluster: 14, dustKeep: 0.18, dprCap: 1.5 },
 };
 
 // Timing, from the board's five stages.

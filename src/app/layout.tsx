@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Michroma } from "next/font/google";
-import Script from "next/script";
+import DeferredAnalytics from "@/components/DeferredAnalytics";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { jsonLd } from "@/lib/jsonLd";
@@ -151,32 +151,9 @@ export default function RootLayout({
         <div className="noise-layer" />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
-      {/* Analytics, deliberately off the critical path.
-
-          @next/third-parties' <GoogleAnalytics> mounts gtag.js through next/script's
-          default `afterInteractive` strategy, so it runs during hydration: 163 KB of
-          third-party JavaScript and ~130ms of scripting competing with the page's own
-          first paint. On mobile that was a measurable share of the project pages' total
-          blocking time.
-
-          `lazyOnload` holds both tags until after the load event. The config call still
-          runs and the dataLayer shim is defined first, so the pageview and any later
-          gtag() calls behave exactly as before — only the timing of the request moves.
-
-          Inline script bodies are permitted here: the CSP in next.config.ts keeps
-          'unsafe-inline' for script-src because every page is statically prerendered
-          and a per-request nonce would force dynamic rendering. */}
-      <Script id="ga-init" strategy="lazyOnload">
-        {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-71Y3E7WE85');`}
-      </Script>
-      <Script
-        id="ga-src"
-        strategy="lazyOnload"
-        src="https://www.googletagmanager.com/gtag/js?id=G-71Y3E7WE85"
-      />
+      {/* Analytics. Deferred to the first interaction, or six seconds —
+          see DeferredAnalytics for why that is further than lazyOnload. */}
+      <DeferredAnalytics />
     </html>
   );
 }

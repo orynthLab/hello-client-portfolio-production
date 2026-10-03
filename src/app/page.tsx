@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import BootSequence from "@/components/BootSequence";
 import TheCore from "@/components/TheCore";
-import { useIsMobile } from "@/components/useIsMobile";
 
+// Still client-only — it measures the viewport and owns a canvas — but no
+// longer a heavyweight chunk: it is a 2D canvas now, not three.js.
 const ParticleField = dynamic(() => import("@/components/ParticleField"), {
   ssr: false,
 });
@@ -15,16 +16,6 @@ const BOOT_FLAG = "hc-booted";
 export default function Home() {
   const [hubMounted, setHubMounted] = useState(false);
   const [heroMounted, setHeroMounted] = useState(true);
-  // A continuous WebGL/Three.js render loop (mouse-parallax particles) is
-  // the single heaviest thing on this page — fine on desktop (99 Lighthouse
-  // performance), but on a 4x-throttled mobile CPU its bundle fetch/eval and
-  // per-frame work were the dominant cost behind a 500ms+ TBT and a ~7s TTI.
-  // Same treatment as every other purely-ambient effect elsewhere in this
-  // codebase (WorldBackground's glow tweens, blur filters, etc.): skip it
-  // entirely on mobile rather than trying to make WebGL cheap there.
-  // Assumed mobile until the real viewport is known, so a phone never starts
-  // fetching the Three.js chunk during hydration only to discard it.
-  const showParticles = !useIsMobile(true);
 
   useEffect(() => {
     // One-time bootstrap read of client-only storage; cannot be known
@@ -69,7 +60,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-dvh w-full bg-void">
-      {showParticles && <ParticleField />}
+      <ParticleField />
       {hubMounted && <TheCore />}
       {heroMounted && (
         <BootSequence onReveal={handleBootReveal} onExitComplete={handleBootExitComplete} />
